@@ -1,18 +1,40 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
-  </div>
+	<div class="home">
+		<Nav />
+		<PokeGrid />
+	</div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import Nav from '@/components/Nav.vue';
+import PokeGrid from '@/components/PokeGrid.vue';
 
 export default {
-  name: "home",
-  components: {
-    HelloWorld
-  }
+	name: 'Home',
+	components: {
+		PokeGrid,
+		Nav
+	},
+	
+	data() {
+		return {
+			// pokemons: []
+		}
+	}
 };
 </script>
+
+<style lang="scss">
+	
+	.oak {
+		height: 300px;
+		margin: 0 auto 30px auto;
+	}
+	.welcome {
+		display: block;
+		margin: 40px auto;
+		border: 10px double black;
+		margin-bottom: 100px;
+	}
+</style>

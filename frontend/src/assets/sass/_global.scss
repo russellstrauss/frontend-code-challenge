@@ -1,0 +1,92 @@
+// Global class-based selectors, put all bare element styling in elements.scss
+
+.clearfix {
+	float: none;
+	clear: both;
+	height: 0;
+}
+
+.center-text {
+	text-align: center;
+}
+
+.container {
+	width: 100%;
+	padding-left: 15px;
+	padding-right: 15px;
+	margin-left: auto;
+	margin-right: auto;
+	
+	@include tablet {
+		max-width: 720px;
+	}
+	@include desktop {
+		max-width: 960px;
+	}
+	@include desktop-large {
+		max-width: 1200px;
+	}
+}
+
+.container-fluid {
+	width: 100%;
+	padding-left: 15px;
+	padding-right: 15px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.center, .aligncenter {
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+}
+
+.frame {
+	border: 1px solid black;
+	margin: 40px auto;
+}
+
+.full-width {
+	width: 100%;
+}
+
+.error-message { //404
+	@include heading-font;
+}
+
+.caption {
+	font-size: 10px;
+}
+
+.coming-soon {
+	display: none;
+}
+
+.custom-row img {
+	float: left;
+	margin-right: 20px;
+	border: 1px solid black;
+}
+
+.illustration {
+	border: 1px solid black;
+}
+
+.callout {
+	@include callout;
+}
+
+.vertical-space {
+	margin-top: 40px;
+	margin-bottom: 40px;
+}
+
+.limit-width-800 {
+	width: 100%;
+	max-width: 800px;
+}
+.limit-width-500 {
+	width: 100%;
+	max-width: 500px;
+}
