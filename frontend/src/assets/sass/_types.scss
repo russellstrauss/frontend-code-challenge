@@ -1,0 +1,87 @@
+.types {
+	padding-top: 5px;
+	
+	li {
+		padding-left: 0;
+		background: none;
+		margin-right: 20px;
+		
+		&.type- {
+			&normal span.is-primary { 
+				$color: #A8A878;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&bug span.is-primary {
+				$color: #A8B820;
+				background-color: $color;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+			}
+			&dragon span.is-primary {
+				$color: #7038F8;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&ice span.is-primary {
+				$color: #98D8D8;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&fighting span.is-primary {
+				$color: #C03028;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&fire span.is-primary {
+				$color: #F08030;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&flying span.is-primary {
+				$color: #A890F0;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&grass span.is-primary {
+				$color: #78C850;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&ghost span.is-primary {
+				$color: #705898;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&ground span.is-primary {
+				$color: #E0C068;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&electric span.is-primary {
+				$color: #F8D030;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&poison span.is-primary {
+				$color: #A040A0;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&psychic span.is-primary {
+				$color: #F85888;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&rock span.is-primary {
+				$color: #B8A038;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+			&water span.is-primary {
+				$color: #6890F0;
+				box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				background-color: $color;
+			}
+		}
+	}
+}

@@ -1,20 +1,20 @@
 <template>
 	<div class="home">
-		<Nav />
+		<!-- <Nav /> -->
 		<PokeGrid />
 	</div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Nav from '@/components/Nav.vue';
+// import Nav from '@/components/Nav.vue';
 import PokeGrid from '@/components/PokeGrid.vue';
 
 export default {
 	name: 'Home',
 	components: {
-		PokeGrid,
-		Nav
+		PokeGrid//,
+		// Nav
 	},
 	
 	data() {

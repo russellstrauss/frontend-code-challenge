@@ -15,8 +15,13 @@ export default new Router({
 			name: 'Home',
 			component: Home
 		},
+		// {
+		// 	path: '/pokedex/:id',
+		// 	name: 'Profile',
+		// 	component: Profile
+		// },
 		{
-			path: '/profile/:id',
+			path: '/profile/:name',
 			name: 'Profile',
 			component: Profile
 		},

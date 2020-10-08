@@ -86,8 +86,17 @@ p {
 }
 
 ul {
+	list-style-type: none;
+	padding-left: 0;
+
 	li {
 		@include body;
+		background-image: url(https://images.wikia.nocookie.net/__cb20140826143924/pokemon/images/4/4d/Poke_Ball_bullet.png);
+		background-repeat: no-repeat;
+		background-size: 12px;
+		background-position: left 25px center;
+		padding-left: 50px;
+		overflow: visible;
 	}
 }
 
