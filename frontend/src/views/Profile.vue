@@ -50,6 +50,11 @@
 					<h5>Weight Range</h5>
 					{{ pokemon.weight.minimum }} - {{ pokemon.weight.maximum }}
 				</div>
+				
+				<div v-if="pokemon.height" class="attribute">
+					<h5>Height Range</h5>
+					{{ pokemon.height.minimum }} - {{ pokemon.height.maximum }}
+				</div>
 			</div>
 		</div>
 		
@@ -91,7 +96,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="move in pokemon.attacks.fast" :key="move.name.toString()">
+								<tr v-for="move in pokemon.attacks.special" :key="move.name.toString()">
 									<td>{{ move.name }}</td>
 									<td class="center-text">{{ move.type }}</td>
 									<td class="center-text">{{ move.damage }} HP</td>
@@ -199,6 +204,7 @@
 									id, name, classification, types, resistant, weaknesses,
 									prevEvolutions { id, name },
 									evolutions { id, name },
+									height { maximum, minimum },
 									weight { maximum, minimum },
 									attacks {
 										fast { name, type, damage },
@@ -222,6 +228,7 @@
 					});
 					if (pokemon.length) {
 						self.pokemon = pokemon[0];
+						console.log(self.pokemon);
 						self.pokemon.prevEntry = result.data.data.pokemons.edges.filter(function(eachPokemon) {
 							if (parseInt(pokemonID) - 1 == eachPokemon.id) return eachPokemon;
 						});

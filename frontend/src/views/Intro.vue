@@ -16,7 +16,7 @@
 					<p>Myself...I study POK&eacute;MON as a profession.</p>
 					<p>My POK&eacute;DEX invention automatically records data on POK&eacute;MON you've seen or caught! It's a hi-tech encyclopedia!</p>
 					<p>A world of dreams and adventures with POK&eacute;MON awaits!</p>
-					<router-link to="/"><button class="nes-btn is-success">Let's go!</button></router-link>
+					<button class="nes-btn is-success" v-on:click="goHome">Let's go!</button>
 				</div>	
 			</div>
 		</div>
@@ -44,7 +44,10 @@ export default {
 		ding: function() {
 			let self = this;
 			let sound = document.getElementById('ding');
-			if (sound) sound.play();
+			if (sound) {
+				sound.volume = 0.1;
+				sound.play();
+			}
 			setTimeout(function() {
 				self.showIntro();
 			}, 1500);
@@ -65,6 +68,14 @@ export default {
 			}
 		},
 		
+		goHome: function() {
+			// window.localStorage.setItem('completedIntro', true);
+			window.location.href ='/';
+			let sound = document.getElementById('music');
+			if (sound) sound.stop();
+			
+		},
+		
 		showIntro: function() {
 			let self = this;
 			
@@ -76,7 +87,7 @@ export default {
 				
 				let sound = document.getElementById('music');
 				if (sound) {
-					sound.volume = 0.1;
+					sound.volume = 0.005;
 					sound.play();
 				}
 			}, 1500);

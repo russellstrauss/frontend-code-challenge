@@ -8,15 +8,6 @@
 	}
 }
 
-@mixin portfolio-piece-title {
-	@include heading-font;
-	
-	@include mobile-only {
-		font-size: 32px;
-		line-height: 1.5;
-	}
-}
-
 @mixin body {
 	font-weight: 300;
 	font-size: 14px;
@@ -144,4 +135,9 @@
 		width: 25px;
 		margin: 0 0 0 20px;
 	}
+}
+
+@mixin pixel {
+	-ms-interpolation-mode: nearest-neighbor;
+	image-rendering: pixelated;
 }
