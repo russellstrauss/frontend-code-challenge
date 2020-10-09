@@ -1,19 +1,25 @@
 <template>
 	<div class="intro">
-		<img id="nintendo" src="/assets/img/nintendo-logo.png" alt="Nintendo Logo">
-		<!-- <img class="oak" src="/assets/img/oak.png" alt="Professor Oak">
-		<div class="welcome nes-container is-centered container">
-			<p>Hello there! Welcome to the wonderful world of POK&eacute;MON!</p>
-			<p>My name is OAK! People call me the POK&eacute;MON PROF!</p>
-			<p>This world is inhabited by creatures called POK&eacute;MON!</p>
-			<p>For some people, POK&eacute;MON are pets. Others use them for fights.</p>
-			<p>Myself...I study POK&eacute;MON as a profession.</p>
-			<p>My POK&eacute;DEX invention automatically records data on POK&eacute;MON you've seen or caught! It's a hi-tech encyclopedia!</p>
-			<p>A world of dreams and adventures with POK&eacute;MON awaits!</p>
-			<router-link to="/"><button class="nes-btn is-success">Let's go!</button></router-link>
-		</div> -->
-		<!-- <img id="gameboy" src="/assets/img/gameboy.png"> -->
-		<audio id="ding"><source src="/assets/sounds/gameboy-start.mp3" type="audio/mpeg" preload="auto" style="display: none" muted>Your browser does not support the audio tag. </audio>
+		<img v-if="!begin" v-on:click="triggerStart" class="power-on nes-pointer" src="/assets/img/gb.png" alt="Start">
+		<div class="intro">
+			<img id="nintendo" src="/assets/img/nintendo-logo.png" alt="Nintendo Logo">
+			
+			<audio id="ding"><source src="/assets/sounds/gameboy-start.mp3" type="audio/mpeg" preload="auto" style="display: none" muted>Your browser does not support the audio tag.</audio>
+			<audio id="music"><source src="/assets/sounds/intro.mp3" type="audio/mpeg" preload="auto" style="display: none" muted>Your browser does not support the audio tag.</audio>
+			<div class="textbox">
+				<img class="oak" src="/assets/img/oak.png" alt="Professor Oak">
+				<div class="welcome nes-container is-centered container">
+					<p>Hello there! Welcome to the wonderful world of POK&eacute;MON!</p>
+					<p>My name is OAK! People call me the POK&eacute;MON PROF!</p>
+					<p>This world is inhabited by creatures called POK&eacute;MON!</p>
+					<p>For some people, POK&eacute;MON are pets. Others use them for fights.</p>
+					<p>Myself...I study POK&eacute;MON as a profession.</p>
+					<p>My POK&eacute;DEX invention automatically records data on POK&eacute;MON you've seen or caught! It's a hi-tech encyclopedia!</p>
+					<p>A world of dreams and adventures with POK&eacute;MON awaits!</p>
+					<router-link to="/"><button class="nes-btn is-success">Let's go!</button></router-link>
+				</div>	
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -25,26 +31,55 @@ export default {
 	
 	name: 'Intro',
 	
+	data() {
+		return {
+			begin: false,
+			nintendoLogo: null,
+			textbox: null
+		};
+	},
+	
 	methods: {
+		
 		ding: function() {
+			let self = this;
 			let sound = document.getElementById('ding');
-			sound.play();
-			
-			// var audio = new Audio('audio_file.mp3');
-			// audio.play();
+			if (sound) sound.play();
+			setTimeout(function() {
+				self.showIntro();
+			}, 1500);
 		},
 		
 		triggerStart: function() {
 			let self = this;
-			let nintendo = document.getElementById('nintendo');
-			if (nintendo) {
+			
+			self.begin = true;
+			
+			if (self.nintendoLogo) {
 				setTimeout(function() {
-					nintendo.style.transform = 'translate(-50%, 0)';
-					nintendo.addEventListener('transitionend', function() {
+					self.nintendoLogo.style.transform = 'translate(-50%, 0)';
+					self.nintendoLogo.addEventListener('transitionend', function() {
 						self.ding();
 					});
 				}, 0);
 			}
+		},
+		
+		showIntro: function() {
+			let self = this;
+			
+			self.nintendoLogo.style.display = 'none';
+			self.textbox.style.pointerEvents = 'all';
+			
+			setTimeout(function() {
+				self.textbox.style.opacity = '1';
+				
+				let sound = document.getElementById('music');
+				if (sound) {
+					sound.volume = 0.1;
+					sound.play();
+				}
+			}, 1500);
 		}
 	},
 	
@@ -52,22 +87,20 @@ export default {
 		
 		let self = this;
 		let body = document.querySelector('body');
+		
+		self.textbox = document.querySelector('.textbox');
+		self.nintendoLogo = document.getElementById('nintendo');
+		
 		body.addEventListener('click', function(event) {
 			 
-			let nintendo = document.getElementById('nintendo');
-			if (nintendo) {
+			if (self.nintendoLogo) {
+				self.nintendoLogo.style.transform = 'translate(-50%, 0)';
 				setTimeout(function() {
-					nintendo.style.transform = 'translate(-50%, 0)';
-					setTimeout(function() {
-						self.ding();
-					}, 5000);
-					// nintendo.addEventListener('transitionend', function() {
-					// 	console.log('Transition ended');
-					// 	self.ding();
-					// });
-				}, 0);
+					self.ding();
+				}, 5000);
 			}
 		});
+		
 	}
 };
 </script>
@@ -81,6 +114,17 @@ export default {
 		justify-content: center;
 		text-align: center;
 		
+		.power-on {
+			display: block;
+			margin: auto;
+			width: 75px;
+			
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+		
 		#nintendo {
 			position: fixed;
 			width: auto;
@@ -90,15 +134,21 @@ export default {
 			transition-timing-function: linear
 		}
 		
-		.oak {
-			height: 300px;
-			margin: 0 auto 30px auto;
-		}
-		
-		.welcome {
-			display: block;
-			margin: 40px auto;
-			border: 10px double black;
+		.textbox {
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 750ms ease;
+			
+			.oak {
+				height: 300px;
+				margin: 0 auto 30px auto;
+			}
+			
+			.welcome {
+				display: block;
+				margin: 40px auto;
+				border: 10px double black;
+			}
 		}
 	}
 </style>

@@ -7,10 +7,15 @@
 			<a v-if="pokemon.nextEntry" :href="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</a>
 		</div>
 		
+		<div class="pagination-mobile">
+			<h2>POK&eacute;DEX Entry #{{ pokemon.id }}</h2>
+			<div class="buttons">
+				<a v-if="pokemon.prevEntry" :href="'/profile/' + pokemon.prevEntry.name.toLowerCase()" class="nes-btn is-primary">&lt; PREV</a>
+				<a v-if="pokemon.nextEntry" :href="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</a>
+			</div>
+		</div>
+		
 		<div class="upper-profile">
-			<!-- <div class="sprite-frame nes-container">
-				<img v-if="pokemon.singleDigitID" :src="pokemon.spritePath" :alt="pokemon.name">
-			</div> -->
 			<div class="pokemon-art">
 				<img v-if="pokemon.singleDigitID" class="photo-art nes-container" :src="'https://pokeres.bastionbot.org/images/pokemon/' + pokemon.singleDigitID + '.png'" :alt="pokemon.name">
 			</div>
@@ -21,9 +26,9 @@
 					<h5>Name</h5>
 					{{ pokemon.name }}
 				</div>
-				<a class="nes-btn is-primary" v-on:click="playRoar()">
+				<a class="nes-btn is-primary" v-on:click="playRoar" v-if="pokemon.singleDigitID">
 					<audio id="pokemonRoar">
-						<source :src="'/assets/sounds/' + pokemon.singleDigitID + '.mp3'" type="audio/mpeg"> Your browser does not support the audio element.
+						<source :src="'/assets/sounds/' + pokemon.singleDigitID + '.mp3'" type="audio/mpeg" preload="auto" style="display: none" muted> Your browser does not support the audio element.
 					</audio>
 					<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="93.038px" height="93.038px" viewBox="0 0 93.038 93.038" style="enable-background:new 0 0 93.038 93.038;" xml:space="preserve">
 						<g>
@@ -48,7 +53,7 @@
 			</div>
 		</div>
 		
-		<div v-if="pokemon.attacks">
+		<section v-if="pokemon.attacks">
 			<h5>Attacks</h5>
 			
 			<div class="attacks">
@@ -96,19 +101,9 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</section>
 		
-		<div v-if="pokemon.evolutions">
-			<h5>Evolutions</h5>
-			<ul class="evolutions">
-				<li v-for="evolution in pokemon.evolutions" :key="evolution.id">
-					{{ evolution.id }} {{ evolution.name }}
-					<img :src="'/assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png'" :alt="pokemon.name">
-				</li>
-			</ul>
-		</div>
-		
-		<div class="row strength-weakness">
+		<section class="row strength-weakness">
 			<div v-if="pokemon.weaknesses" class="attribute">
 				<h5>Weaknesses</h5>
 				<ul class="weaknesses">
@@ -122,7 +117,40 @@
 					<li v-for="resistance in pokemon.resistant" :key="resistance.toString()">{{ resistance }}</li>
 				</ul>
 			</div>
-		</div>
+		</section>
+		
+		<section class="evolutions" v-if="pokemon.evolutions">
+			<h5>Evolutions</h5>
+			
+			<div class="nes-table-responsive"  v-if="pokemon.evolutions">
+				<table class="nes-table is-bordered is-centered">
+					<tbody>
+						<tr>
+							<td v-for="evolution in pokemon.prevEvolutions" :key="evolution.id" class="previous">
+								<div class="nes-badge"><span class="is-primary">Previous</span></div>
+								<a :href=" '/profile/' + evolution.name.toLowerCase()">
+									<img :src="'/assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png'" :alt="evolution.name">
+									{{ evolution.id }} {{ evolution.name }}
+								</a>
+							</td>
+							<td class="previous">
+								<div class="nes-badge"><span class="is-primary">Current</span></div>
+								<a :href=" '/profile/' + pokemon.name.toLowerCase()">
+									<img :src="'/assets/img/sprites/red-blue/' + pokemon.singleDigitID + '.png'" :alt="pokemon.name">
+									{{ pokemon.id }} {{ pokemon.name }}
+								</a>
+							</td>
+							<td v-for="evolution in pokemon.evolutions" :key="evolution.id" class="previous">
+								<a :href=" '/profile/' + evolution.name.toLowerCase()">
+									<img :src="'/assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png'" :alt="evolution.name">
+									{{ evolution.id }} {{ evolution.name }}
+								</a>
+							</td>					
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
 		
 		<p v-if="errorMessage">
 			{{ errorMessage }}
@@ -149,7 +177,9 @@
 				return string.replace(/^0+/, '')
 			},
 			playRoar: function() {
-				document.getElementById('pokemonRoar').play();
+				let sound = document.getElementById('pokemonRoar');
+				console.log(sound);
+				if (sound) sound.play();
 			}
 		},
 		
@@ -167,6 +197,7 @@
 							pokemons(query: { limit: 151 }) {
 								edges {
 									id, name, classification, types, resistant, weaknesses,
+									prevEvolutions { id, name },
 									evolutions { id, name },
 									weight { maximum, minimum },
 									attacks {
@@ -224,6 +255,26 @@
 			align-items: center;
 			margin-bottom: 50px;
 			
+			@include mobile-only {
+				display: none;
+			}
+			
+			&-mobile {
+				
+				@include tablet {
+					display: none
+				}
+				
+				h2 {
+					margin-bottom: 20px;
+				}
+				.buttons {
+					display: flex;
+					justify-content: space-between;
+					margin-bottom: 80px;
+				}
+			}
+			
 			h1 {
 				text-align: center;
 				margin-bottom: 20px;
@@ -247,6 +298,11 @@
 		}
 		
 		.upper-profile {
+		
+			@include mobile-only {
+				margin-bottom: 100px;
+			}
+			
 			@include tablet {
 				display: flex;
 			}
@@ -299,6 +355,13 @@
 			}
 		}
 		
+		section {
+			
+			@include mobile-only {
+				margin-bottom: 100px;
+			}
+		}
+		
 		.attacks {
 			@include tablet {
 				display: flex;
@@ -348,16 +411,27 @@
 	}
 	
 	.evolutions {
-		display: flex;
-		margin-bottom: 0;
 		
-		li {
-			@include grid(3);
-			background: none;
+		table {
+			text-align: center;
+			width: calc(100% - (4px * 4 - 10px));
 			
-			@include mobile-only {
-				padding-left: 0;
-				margin-bottom: 0;
+			img {
+				margin: auto auto 20px auto;
+			}
+			
+			a {
+				color: black;
+				font-size: 10px;
+			}
+			
+			$color: #ccc;
+			.nes-badge {
+				span.is-primary:first-child {
+					background-color: $color;
+					box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+					left: 0;
+				}
 			}
 		}
 	}

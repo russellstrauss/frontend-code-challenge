@@ -32,25 +32,60 @@
 		<ul :class="view">
 			<li v-for="pokemon in activePokemons" :key="pokemon.id" class="pokemon nes-container with-title">
 				
-				<h3 class="title">{{ pokemon.name }}</h3>
-				<div class="row">
-					<div>ID: {{ pokemon.id }}</div>
-					<div v-if="pokemon.types">
-						<ul class="types">
-							<li v-for="type in pokemon.types" :key="type.toString()" class="nes-badge" :class="'type-' + type.toLowerCase()"><span class="is-primary">{{ type }}</span></li>
-						</ul>
+				<div class="grid-view hide-in-list">
+					
+					<h3 class="title">{{ pokemon.name }}</h3>
+					<div class="details">
+						
+						<div class="row">
+							<div>ID: {{ pokemon.id }}</div>
+							<div v-if="pokemon.types">
+								<ul class="types">
+									<li v-for="type in pokemon.types" :key="type.toString()" class="nes-badge" :class="'type-' + type.toLowerCase()"><span class="is-primary">{{ type }}</span></li>
+								</ul>
+							</div>
+							
+							<div class="row hide-in-grid">
+								<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavorite(pokemon)" onclick="document.getElementById('dialog-default').showModal();"></div>
+								<a class="nes-btn is-success" :href="'/profile/' + pokemon.name.toLowerCase()">View &gt;</a>
+							</div>
+						</div>
+						
+						<a :href="'/profile/' + pokemon.name.toLowerCase()">
+							<img class="pokemon-profile-pic" :src="'/assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png'" :alt="pokemon.name">
+						</a>
+						
+						
+						
+						<div class="row">
+							<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavorite(pokemon)" onclick="document.getElementById('dialog-default').showModal();"></div>
+							<a class="nes-btn is-success" :href="'/profile/' + pokemon.name.toLowerCase()">View &gt;</a>
+						</div>
 					</div>
 				</div>
 				
-				<a :href="'/profile/' + pokemon.name.toLowerCase()">
-					<img class="pokemon-profile-pic" :src="'/assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png'" :alt="pokemon.name">
-				</a>
-				
-				
-				
-				<div class="row">
-					<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavorite(pokemon)" onclick="document.getElementById('dialog-default').showModal();"></div>
-					<a class="nes-btn is-success" :href="'/profile/' + pokemon.name.toLowerCase()">View &gt;</a>
+				<div class="list-view hide-in-grid">
+					<h3 class="title">{{ pokemon.name }}</h3>
+					<div class="details">
+						
+						<div class="row">
+							<div>ID: {{ pokemon.id }}</div>
+							<div v-if="pokemon.types">
+								<ul class="types">
+									<li v-for="type in pokemon.types" :key="type.toString()" class="nes-badge" :class="'type-' + type.toLowerCase()"><span class="is-primary">{{ type }}</span></li>
+								</ul>
+							</div>
+							
+							<div class="row hide-in-grid">
+								<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavorite(pokemon)" onclick="document.getElementById('dialog-default').showModal();"></div>
+								<a class="nes-btn is-success" :href="'/profile/' + pokemon.name.toLowerCase()">View &gt;</a>
+							</div>
+						</div>
+						
+						<a :href="'/profile/' + pokemon.name.toLowerCase()">
+							<img class="pokemon-profile-pic" :src="'/assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png'" :alt="pokemon.name">
+						</a>
+					</div>
 				</div>
 
 			</li>
@@ -128,13 +163,15 @@
 			},
 			
 			scrollTop: function() {
-				let body = document.querySelector('body');
-				body.scrollTop;
+				// let body = document.querySelector('body');
+				// body.scrollTop;
+				
+				window.scrollTo(0, 0);
 			}
 		},
 		
 		updated: function() {
-			let pokemonCards = document.querySelectorAll('.poke-grid .grid .pokemon');
+			let pokemonCards = document.querySelectorAll('.poke-grid .pokemon');
 			if (pokemonCards) pokemonCards.forEach(function(element, index) {
 				
 				element.style.opacity = 0;
@@ -146,15 +183,24 @@
 		},
 		
 		beforeUpdate: function() {
-			// let pokemonCards = document.querySelectorAll('.poke-grid .grid .pokemon');
-			// if (pokemonCards) pokemonCards.forEach(function(element, index) {
-			// 	element.style.opacity = 0;
-			// });
+			let pokemonCards = document.querySelectorAll('.poke-grid .pokemon');
+			if (pokemonCards) pokemonCards.forEach(function(element, index) {
+				element.style.opacity = 0;
+			})
 		},
 		
 		async mounted() {
-			
 			let self = this;
+			
+			window.addEventListener('scroll', function(e) {
+				// if (window.scrollY > 1000) {
+				// 	self.showScroller = true;
+				// }
+				// else {
+				// 	self.showScroller = false;
+				// }
+			});
+			
 			try {
 				let graphQuery = axios({
 					url: 'http://localhost:4000/graphql',
@@ -163,16 +209,16 @@
 						query: `
 							query {
 								pokemons(query: { limit: 151 }) {
-								edges {
-									id, name, classification, types, resistant, weaknesses,
-									evolutions { id, name },
-									weight { maximum, minimum },
-									attacks {
-										fast { name, type, damage },
-										special { name, type, damage }
-									}
-								} 
-							}
+									edges {
+										id, name, classification, types, resistant, weaknesses,
+										evolutions { id, name },
+										weight { maximum, minimum },
+										attacks {
+											fast { name, type, damage },
+											special { name, type, damage }
+										}
+									} 
+								}
 							}
 						`
 					}
@@ -260,20 +306,50 @@
 		.list {
 			margin-top: 20px;
 			
+			.hide-in-list {
+				display: none;
+			}
+			
 			.pokemon {
+				$padding: 10px;
 				background: none;
 				margin-bottom: 20px;
+				padding: $padding;
 				
-				h3 {
-					margin-top: calc(-1em - 20px);
+				.title {
+					margin-top: calc(-20px - .75em);
+					color: black;
+					background-color: white;
+					font-size: 16px;
+					display: table;
+					padding: 0 10px;
+					margin-left: -10px;
+					margin-top: -1.25em;
+					margin-bottom: 0;
 				}
 				
-				.pokemon-profile-pic {
-					width: 250px;
-					-ms-interpolation-mode: nearest-neighbor;
-					image-rendering: pixelated;
-					text-align: right;
+				.details {
+					display: flex;
+					justify-content: space-between;
+					align-items: flex-start;
+					
+					.types {
+						font-size: 10px;
+					}
+					
+					.pokemon-profile-pic {
+						width: 100px;
+						-ms-interpolation-mode: nearest-neighbor;
+						image-rendering: pixelated;
+						text-align: right;
+						margin: 0;
+						
+						img {
+							margin: 0;
+						}
+					}
 				}
+				
 			}
 		}
 
@@ -283,14 +359,18 @@
 			padding: 0;
 			margin-top: 20px;
 			
+			.hide-in-grid {
+				display: none !important;
+			}
+			
 			.pokemon {
+				$padding: 20px;
 				list-style-type: none;
 				background: none;
-				padding: 20px;
+				padding: $padding;
 				
-				transition: opacity 250ms ease;
+				transition: opacity 25ms ease;
 				opacity: 0;
-				
 				
 				
 				@include mobile-only {
@@ -301,57 +381,65 @@
 				@include tablet {
 					@include grid(3, 25);
 				}
-				
-				.row {
+				.grid-view {
 					
-					.types {
-						font-size: 8px;
-						display: flex;
-						justify-content: flex-end;
+					.row {
 						
-						.nes-badge {
-							margin: 0 0 0 15px;
+						.types {
+							font-size: 8px;
+							display: flex;
+							justify-content: flex-end;
+							
+							.nes-badge {
+								margin: 0 0 0 15px;
+							}
 						}
 					}
-				}
-				
-				.title {
-					margin-top: calc(-20px - .75em);
-					color: black;
-				}
-				
-				.pokemon-profile-pic {
-					display: block;
-					margin-left: auto;
-					margin-right: auto;
-					width: 50%;
-					-ms-interpolation-mode: nearest-neighbor;
-					image-rendering: pixelated;
-					margin: 20px auto;
-				}
-				
-				.row {
-					display: flex;
-					justify-content: space-between;
-					align-items: center;
-				}
-				
-				.favorite {
-					width: 24px;
-					height: 24px;
-					margin-top: 10px;
-					background-size: 100%;
-					background-image: url(/assets/img/heart.png);
 					
-					&.active {
-						background-image: url(/assets/img/heart-active.png);
+					.title {
+						margin-top: calc(-20px - .75em);
+						color: black;
+						background-color: white;
+						font-size: 16px;
+						display: table;
+						padding: 0 10px;
+						margin-left: -10px;
+					}
+					
+					.pokemon-profile-pic {
+						display: block;
+						margin-left: auto;
+						margin-right: auto;
+						width: 50%;
+						-ms-interpolation-mode: nearest-neighbor;
+						image-rendering: pixelated;
+						margin: 20px auto;
+					}
+					
+					.row {
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+					}
+					
+					.favorite {
+						width: 24px;
+						height: 24px;
+						margin-top: 10px;
+						background-size: 100%;
+						background-image: url(/assets/img/heart.png);
+						
+						&.active {
+							background-image: url(/assets/img/heart-active.png);
+						}
+					}
+					
+					.nes-btn {
+						font-size: 9px;
+						padding: 3px 5px;
 					}
 				}
 				
-				.nes-btn {
-					font-size: 9px;
-					padding: 3px 5px;
-				}
 			}
 		}
 		
