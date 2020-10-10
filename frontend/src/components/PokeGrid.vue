@@ -103,10 +103,15 @@
 		</ul>
 		
 		<div class="poke-notification-tray">
-			<transition-group name="fade" tag="div">
+			<transition-group name="notification-fade" tag="div">
 				<div class="poke-notification nes-container" v-for="notification in notifications" :key="'id' + notification.count">
-					<p class="title">POK&eacute; Dialog</p>
-					<p>{{ notification.message }}</p>
+					<div class="flex">
+						<img class="poke-ball" :src="'/assets/img/poke-ball.png'" alt="Poke Ball Icon">
+						<div>
+							<p class="title">POK&eacute; Dialog</p>
+							<p>{{ notification.message }}</p>
+						</div>
+					</div>
 				</div>
 			</transition-group>
 		</div>
@@ -114,7 +119,7 @@
 		<div class="no-favorites-message" v-if="showingFavorites && favorites.length < 1">No favorites added yet.</div>
 		<div class="no-favorites-message" v-if="showingFavorites && activePokemons.length < 1 && searchTerm === ''">No favorites<span v-if="typeFilter"> of {{ typeFilter }} type</span>.</div>
 		
-		<dialog class="nes-dialog poke-modal" id="pokeModal">
+		<div class="nes-dialog poke-modal" id="pokeModal">
 			<svg v-on:click="triggerCloseModal" class="close" height="24" width="24" viewBox="0 0 512.001 512.001" xmlns="http://www.w3.org/2000/svg">
 				<g><path d="m512.001 84.853-84.853-84.853-171.147 171.147-171.148-171.147-84.853 84.853 171.148 171.147-171.148 171.148 84.853 84.853 171.148-171.147 171.147 171.147 84.853-84.853-171.148-171.148z"/></g>
 			</svg>
@@ -125,7 +130,7 @@
 					</a>
 				</div>
 				<div class="right">
-					<h1>POK&eacute; Modal</h1>
+					<h2 class="title">POK&eacute; Modal</h2>
 					{{ modalPokemon.name }}
 					<div v-if="modalPokemon.types">
 						<ul class="types">
@@ -195,14 +200,14 @@
 					</table>
 				</div>
 			</div>
-		</dialog>
+		</div>
 		
 		<div class="nes-dialog" id="pokeDialog">
 			<p class="title">POK&eacute; Dialog</p>
 			<p>{{ containsFavorite(selectedFavorite) ? 'Remove' : 'Add' }} {{ selectedFavorite.name }} to your favorite POK&eacute;MON?</p>
 			
 			<menu class="dialog-menu">
-				<button class="nes-btn">Cancel</button>
+				<button class="nes-btn" v-on:click="closeDialog">Cancel</button>
 				<button class="nes-btn is-primary" v-on:click="setFavorite(selectedFavorite)">Confirm</button>
 			</menu>
 		</div>
@@ -237,6 +242,7 @@
 				notifications: [],
 				notificationCount: 0,
 				pokeDialog: null,
+				pokeModal: null,
 				overlay: null
 			};
 		},
@@ -250,6 +256,7 @@
 			
 			showFavorites: function() {
 				this.showingFavorites = true;
+				this.typeFilter = '';
 				this.activePokemons = this.allPokemons.filter(function(pokemon) {
 					return pokemon.favorited;
 				});
@@ -267,13 +274,18 @@
 				self.overlay.classList.add('active');
 			},
 			
+			closeDialog: function()  {
+				let self = this;
+				self.pokeDialog.classList.remove('active');
+				self.overlay.classList.remove('active');
+			},
+			
 			setFavorite: function(pokemon) {
 				
 				let self = this;
 				let removing = self.containsFavorite(pokemon);
 				
-				self.pokeDialog.classList.remove('active');
-				self.overlay.classList.remove('active');
+				self.closeDialog();
 				
 				if (removing) {
 					self.favorites = self.favorites.filter(function(id) {
@@ -341,7 +353,7 @@
 			},
 			
 			lsExists: function() {
-				var test = 'test';
+				let test = 'test';
 				try {
 					localStorage.setItem(test, test);
 					localStorage.removeItem(test);
@@ -366,24 +378,24 @@
 			},
 			
 			triggerShowModal: function(pokemon) {
-				
-				this.modalPokemon = pokemon;
-				this.showModal = true;
-				
-				let pokeModal = document.getElementById('pokeModal');
-				console.log(pokeModal.showModal);
-				if (pokeModal.showModal) pokeModal.showModal();
+				let self = this;
+				self.modalPokemon = pokemon;
+				self.showModal = true;
+				self.pokeModal.classList.add('active');
+				self.overlay.classList.add('active');
 			},
 			
 			triggerCloseModal: function() {
-				let pokeModal = document.getElementById('pokeModal');
-				if (pokeModal) document.getElementById('pokeModal').close();
+				let self = this;
+				self.pokeModal.classList.remove('active');
+				self.overlay.classList.remove('active');
 			}
 		},
 		
 		async mounted() {
 			let self = this;
 			
+			self.pokeModal = document.getElementById('pokeModal');
 			self.pokeDialog = document.getElementById('pokeDialog');
 			self.overlay = document.getElementById('modalOverlay');
 			
@@ -477,17 +489,17 @@
 		}
 	}
 	
-	.fade-enter-active, .fade-leave-active { // move these to right specificity-level
+	.notification-fade-enter-active, .notification-fade-leave-active { // move these to right specificity-level
 		transition: all 1000ms ease;
 		
 	}
 	
-	.fade-enter {
+	.notification-fade-enter {
 		transform: translate(0, 20px);
 		opacity: 0;
 	}
 	
-	.fade-leave-to {
+	.notification-fade-leave-to {
 		transform: translate(0, -(20px)*2);
 		opacity: 0;
 	}
@@ -806,12 +818,19 @@
 			
 			.right {
 				
+				.title {
+					margin-top: 0;
+					margin-right: 40px;
+					margin-bottom: 40px;
+				}
 			}
 		}
 		
 		.attacks table {
+			font-size: 11px;
+			
 			@include tablet {
-				width: 500px;
+				width: 525px;
 			}
 		}
 		
@@ -830,7 +849,7 @@
 	}
 	
 	.poke-notification-tray {
-		position: absolute;
+		position: fixed;
 		top: 20px;
 		right: 20px;
 		
@@ -838,20 +857,34 @@
 			box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 			background-color: white;
 			padding: 15px;
-			width: 400px;
+			width: 500px;
 			margin-bottom: 20px;
-			// transform: translate(0, 20px);
-			// opacity: 0;
 			transition: all 1000ms ease;
-			// transform: translate(0, 0px);
-			// opacity: 1;
 			
-			p {
-				font-size: 12px;
-			}
-			
-			.title {
-				margin-bottom: 10px;
+			.flex {
+				display: flex;
+				justify-content: flex-start;
+				align-items: center;
+				
+				.poke-ball {
+					width: 75px;
+					height: 75px;
+					margin: 0 20px 0 0;
+				}
+				
+				div {
+					.title {
+						margin-bottom: 10px;
+					}
+					
+					p {
+						font-size: 12px;
+						
+						&:last-of-type {
+							margin-bottom: 0;
+						}
+					}
+				}
 			}
 		}
 	}

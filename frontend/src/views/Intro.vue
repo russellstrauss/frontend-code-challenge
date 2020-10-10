@@ -71,8 +71,6 @@ export default {
 		goHome: function() {
 			// window.localStorage.setItem('completedIntro', true);
 			window.location.href ='/';
-			let sound = document.getElementById('music');
-			if (sound) sound.stop();
 			
 		},
 		

@@ -132,7 +132,7 @@
 					<tbody>
 						<tr>
 							<td v-for="evolution in pokemon.prevEvolutions" :key="evolution.id" class="previous">
-								<div class="nes-badge"><span class="is-primary">Previous</span></div>
+								<div class="nes-badge"><span class="previous is-primary">Previous</span></div>
 								<a :href=" '/profile/' + evolution.name.toLowerCase()">
 									<img :src="'/assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png'" :alt="evolution.name">
 									{{ evolution.id }} {{ evolution.name }}
@@ -432,12 +432,15 @@
 				font-size: 10px;
 			}
 			
-			$color: #ccc;
+			$color: #aaa;
 			.nes-badge {
-				span.is-primary:first-child {
-					background-color: $color;
-					box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+				span {
 					left: 0;
+					
+					&.previous:first-child {
+						background-color: $color;
+						box-shadow: 0 0.5em $color, 0 -0.5em $color, 0.5em 0 $color, -0.5em 0 $color;
+					}
 				}
 			}
 		}
