@@ -120,7 +120,7 @@
 		<div class="no-favorites-message" v-if="showingFavorites && activePokemons.length < 1 && searchTerm === ''">No favorites<span v-if="typeFilter"> of {{ typeFilter }} type</span>.</div>
 		
 		<div class="nes-dialog poke-modal" id="pokeModal">
-			<svg v-on:click="triggerCloseModal" class="close" height="24" width="24" viewBox="0 0 512.001 512.001" xmlns="http://www.w3.org/2000/svg">
+			<svg v-on:click="triggerCloseModal" class="close nes-pointer" height="24" width="24" viewBox="0 0 512.001 512.001" xmlns="http://www.w3.org/2000/svg">
 				<g><path d="m512.001 84.853-84.853-84.853-171.147 171.147-171.148-171.147-84.853 84.853 171.148 171.147-171.148 171.148 84.853 84.853 171.148-171.147 171.147 171.147 84.853-84.853-171.148-171.148z"/></g>
 			</svg>
 			<div class="flex" v-if="modalPokemon">
@@ -220,6 +220,7 @@
 <script>
 	
 	import axios from 'axios';
+	import anime from 'animejs';
 	
 	export default {
 		
@@ -252,14 +253,21 @@
 			showAll: function() {
 				this.showingFavorites = false;
 				this.activePokemons = this.allPokemons;
+				this.typeFilter = '';
+				self.triggerStagger();
 			},
 			
 			showFavorites: function() {
 				this.showingFavorites = true;
 				this.typeFilter = '';
+				this.updateFavoritesView();
+			},
+			
+			updateFavoritesView: function() {
 				this.activePokemons = this.allPokemons.filter(function(pokemon) {
 					return pokemon.favorited;
 				});
+				self.triggerStagger();
 			},
 			
 			containsFavorite: function(selectedPokemon) {
@@ -291,6 +299,9 @@
 					self.favorites = self.favorites.filter(function(id) {
 						if (id === pokemon.id) {
 							self.showNotification(pokemon.name + ' removed from favorites.');
+							self.favorites = self.favorites.filter(function(favoritePokemonID) {
+								if (favoritePokemonID !== pokemon.id) return pokemon
+							});
 							pokemon.favorited = false;
 						}
 						return id !== pokemon.id;
@@ -302,6 +313,7 @@
 					self.favoritePokemon.push(pokemon);
 					pokemon.favorited = true;
 				}
+				if (self.showingFavorites) self.updateFavoritesView();
 				window.localStorage.setItem('favorites', JSON.stringify(self.favorites));
 			},
 			
@@ -330,6 +342,8 @@
 				self.activePokemons = filteredPokemon.filter(function(pokemon) {
 					if (self.hasMatchingType(self.typeFilter, pokemon)) return pokemon;
 				});
+				
+				self.triggerStagger();
 			},
 			
 			triggerSearch: function(event) {
@@ -389,11 +403,50 @@
 				let self = this;
 				self.pokeModal.classList.remove('active');
 				self.overlay.classList.remove('active');
+			},
+			
+			hideAllGridItems: function() {
+				let pokemonItems = document.querySelectorAll('.poke-grid .pokemon');
+				pokemonItems.forEach(function(element) {
+					element.style.opacity = '0';
+				});
+			},
+			
+			triggerStagger: function() {
+				
+				// let self = this;
+				
+				// self.hideAllGridItems();
+				
+				// let colCount = 3;
+				// let rowCount = Math.ceil(self.activePokemons.length / colCount);
+				// let interval = 250;
+				
+				// setTimeout(function() {
+					
+				// 	self.activePokemons.forEach(function(pokemon) {
+				// 		console.log(pokemon.name);
+				// 	});
+					
+				// 	let pokemonItems = document.querySelectorAll('.poke-grid .pokemon');
+				// 	console.log('number to animate: ', pokemonItems.length);
+					
+				// 	anime({
+				// 		targets: '.poke-grid .pokemon',
+				// 		opacity: [
+				// 			{value: 1, easing: 'easeInOutQuad', duration: 250}
+				// 		],
+						
+				// 		delay: anime.stagger(interval, {grid: [colCount, rowCount], from: 'first'}) // from 'center', 'first', 'last'
+				// 	});
+				// }, 0);
 			}
 		},
 		
 		async mounted() {
 			let self = this;
+			
+			console.clear();
 			
 			self.pokeModal = document.getElementById('pokeModal');
 			self.pokeDialog = document.getElementById('pokeDialog');
@@ -438,6 +491,8 @@
 							pokemon.favorited = true
 						}
 					});
+					
+					self.triggerStagger();
 				});
 			}
 			catch(error) {
@@ -487,21 +542,6 @@
 		&.active {
 			z-index: 100;
 		}
-	}
-	
-	.notification-fade-enter-active, .notification-fade-leave-active { // move these to right specificity-level
-		transition: all 1000ms ease;
-		
-	}
-	
-	.notification-fade-enter {
-		transform: translate(0, 20px);
-		opacity: 0;
-	}
-	
-	.notification-fade-leave-to {
-		transform: translate(0, -(20px)*2);
-		opacity: 0;
 	}
 	
 	.poke-grid {
@@ -695,7 +735,6 @@
 				background: none;
 				padding: $padding;
 				
-				transition: opacity 25ms ease;
 				// opacity: 0;
 				
 				@include mobile-only {
@@ -852,6 +891,20 @@
 		position: fixed;
 		top: 20px;
 		right: 20px;
+		
+		.notification-fade-enter-active, .notification-fade-leave-active {
+			transition: all 1000ms ease;	
+		}
+		
+		.notification-fade-enter {
+			transform: translate(0, 20px);
+			opacity: 0;
+		}
+		
+		.notification-fade-leave-to {
+			transform: translate(0, -(20px)*2);
+			opacity: 0;
+		}
 		
 		.poke-notification {
 			box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);

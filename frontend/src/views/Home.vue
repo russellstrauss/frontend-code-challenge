@@ -8,12 +8,14 @@
 <script>
 // @ is an alias to /src
 // import Nav from '@/components/Nav.vue';
+import HelloWorld from '@/components/HelloWorld.vue';
 import PokeGrid from '@/components/PokeGrid.vue';
 
 export default {
 	name: 'Home',
 	components: {
-		PokeGrid//,
+		PokeGrid,
+		HelloWorld
 		// Nav
 	},
 	
