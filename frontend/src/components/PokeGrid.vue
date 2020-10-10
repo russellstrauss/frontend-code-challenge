@@ -3,11 +3,6 @@
 		
 		<h1>POK&eacute;DEX</h1>
 		
-		<button v-on:click="show = !show">Toggle</button>
-		<transition name="fade">
-			<p v-if="show">hello</p>
-		</transition>
-		
 		<div class="view-switcher">
 			<div class="left">
 				<button class="nes-btn" :class="{ 'is-success': !showingFavorites }" v-on:click="showAll">View All</button>
@@ -52,7 +47,7 @@
 							</div>
 						</div>
 						
-						<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavoriteDialog(pokemon)"></div>
+						<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="showFavoriteDialog(pokemon)"></div>
 						
 						<a :href="'/profile/' + pokemon.name.toLowerCase()">
 							<img class="pokemon-profile-pic" :src="'/assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png'" :alt="pokemon.name">
@@ -95,7 +90,7 @@
 							</ul>
 						</div>
 						
-						<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavoriteDialog(pokemon)"></div>
+						<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="showFavoriteDialog(pokemon)"></div>
 						
 						<div class="view">
 							<a class="nes-btn" v-on:click="triggerShowModal(pokemon)">Quick View</a>
@@ -202,16 +197,16 @@
 			</div>
 		</dialog>
 		
-		<dialog class="nes-dialog" id="pokeDialog">
-			<form method="dialog">
-				<p class="title">POK&eacute; Dialog</p>
-				<p>{{ containsFavorite(selectedFavorite) ? 'Remove' : 'Add' }} {{ selectedFavorite.name }} to your favorite POK&eacute;MON?</p>
-				<menu class="dialog-menu">
-					<button class="nes-btn">Cancel</button>
-					<button class="nes-btn is-primary" v-on:click="setFavorite(selectedFavorite)">Confirm</button>
-				</menu>
-			</form>
-		</dialog>
+		<div class="nes-dialog" id="pokeDialog">
+			<p class="title">POK&eacute; Dialog</p>
+			<p>{{ containsFavorite(selectedFavorite) ? 'Remove' : 'Add' }} {{ selectedFavorite.name }} to your favorite POK&eacute;MON?</p>
+			
+			<menu class="dialog-menu">
+				<button class="nes-btn">Cancel</button>
+				<button class="nes-btn is-primary" v-on:click="setFavorite(selectedFavorite)">Confirm</button>
+			</menu>
+		</div>
+		<div id="modalOverlay"></div>
 		
 		<button type="button" class="nes-btn is-error scroll-btn active" v-on:click="scrollTop"><span>&lt;</span></button>
 	</div>
@@ -241,7 +236,8 @@
 				showModal: true,
 				notifications: [],
 				notificationCount: 0,
-				show: true
+				pokeDialog: null,
+				overlay: null
 			};
 		},
 		
@@ -264,17 +260,20 @@
 				return this.favorites.includes(selectedPokemon.id);
 			},
 			
-			setFavoriteDialog: function(pokemon) {
+			showFavoriteDialog: function(pokemon) {
 				let self = this;
 				self.selectedFavorite = pokemon;
-				let pokeDialog = document.getElementById('pokeDialog');
-				console.log(pokeDialog);
-				if (pokeDialog) pokeDialog.showModal();
+				self.pokeDialog.classList.add('active');
+				self.overlay.classList.add('active');
 			},
 			
 			setFavorite: function(pokemon) {
+				
 				let self = this;
 				let removing = self.containsFavorite(pokemon);
+				
+				self.pokeDialog.classList.remove('active');
+				self.overlay.classList.remove('active');
 				
 				if (removing) {
 					self.favorites = self.favorites.filter(function(id) {
@@ -385,6 +384,9 @@
 		async mounted() {
 			let self = this;
 			
+			self.pokeDialog = document.getElementById('pokeDialog');
+			self.overlay = document.getElementById('modalOverlay');
+			
 			let previousFavorites = JSON.parse(localStorage.getItem('favorites'));
 			if (typeof previousFavorites != 'undefined') window.localStorage.setItem('favorites', JSON.stringify(self.favorites));
 			else {
@@ -435,7 +437,47 @@
 
 <style lang="scss">
 	
-	.fade-enter-active, .fade-leave-active {
+	.nes-dialog {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		background-color: white;
+		border: 4px solid black;
+		transform: translate(-50%, -50%);
+		z-index: -1000;
+		
+		&.active {
+			z-index: 101;
+		}
+		
+		menu {
+			margin: 0;
+			padding: 0;
+			display: flex;
+			justify-content: flex-end;
+			
+			button {
+				margin-left: 20px;
+			}
+		}
+	}
+	
+	#modalOverlay {
+		background-color: black;
+		opacity: .5;
+		left: 0;
+		top: 0;
+		position: fixed;
+		width: 100%;
+		height: 100vh;
+		z-index: -1000;
+		
+		&.active {
+			z-index: 100;
+		}
+	}
+	
+	.fade-enter-active, .fade-leave-active { // move these to right specificity-level
 		transition: all 1000ms ease;
 		
 	}
@@ -451,10 +493,11 @@
 	}
 	
 	.poke-grid {
-		margin-bottom: 100px;
+		padding-top: 50px;
+		padding-bottom: 100px;
 		
 		h1 {
-			margin: 50px 0 30px 0;
+			margin: 0 0 30px 0;
 		}
 		
 		.search-and-type {
