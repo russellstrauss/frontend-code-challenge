@@ -3,6 +3,11 @@
 		
 		<h1>POK&eacute;DEX</h1>
 		
+		<button v-on:click="show = !show">Toggle</button>
+		<transition name="fade">
+			<p v-if="show">hello</p>
+		</transition>
+		
 		<div class="view-switcher">
 			<div class="left">
 				<button class="nes-btn" :class="{ 'is-success': !showingFavorites }" v-on:click="showAll">View All</button>
@@ -90,8 +95,10 @@
 							</ul>
 						</div>
 						
+						<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavoriteDialog(pokemon)"></div>
+						
 						<div class="view">
-							<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="setFavoriteDialog(pokemon)"></div>
+							<a class="nes-btn" v-on:click="triggerShowModal(pokemon)">Quick View</a>
 							<a class="nes-btn is-success" :href="'/profile/' + pokemon.name.toLowerCase()">View &gt;</a>
 						</div>
 					</div>
@@ -99,6 +106,15 @@
 
 			</li>
 		</ul>
+		
+		<div class="poke-notification-tray">
+			<transition-group name="fade" tag="div">
+				<div class="poke-notification nes-container" v-for="notification in notifications" :key="'id' + notification.count">
+					<p class="title">POK&eacute; Dialog</p>
+					<p>{{ notification.message }}</p>
+				</div>
+			</transition-group>
+		</div>
 		
 		<div class="no-favorites-message" v-if="showingFavorites && favorites.length < 1">No favorites added yet.</div>
 		<div class="no-favorites-message" v-if="showingFavorites && activePokemons.length < 1 && searchTerm === ''">No favorites<span v-if="typeFilter"> of {{ typeFilter }} type</span>.</div>
@@ -116,10 +132,35 @@
 				<div class="right">
 					<h1>POK&eacute; Modal</h1>
 					{{ modalPokemon.name }}
+					<div v-if="modalPokemon.types">
+						<ul class="types">
+							<li v-for="type in modalPokemon.types" :key="type.toString()" class="nes-badge" :class="'type-' + type.toLowerCase()"><span class="is-primary">{{ type }}</span></li>
+						</ul>
+					</div>
 				</div>
 			</div>
+			
+			<div class="strength-weakness flex">
+				<div class="left">
+					<div v-if="modalPokemon">
+						<h5>Weaknesses</h5>
+						<ul class="weaknesses">
+							<li v-for="weakness in modalPokemon.weaknesses" :key="weakness.toString()">{{ weakness }}</li>
+						</ul>
+					</div>
+				</div>
+				<div class="right">
+					<div v-if="modalPokemon">
+						<h5>Resistance</h5>
+						<ul class="resistant">
+							<li v-for="resistance in modalPokemon.resistant" :key="resistance.toString()">{{ resistance }}</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			
 			<div class="attacks" v-if="modalPokemon">
-				<h6>Physical</h6>
+				<h5>Physical</h5>
 				<div v-if="modalPokemon.attacks.fast" class="nes-table-responsive">
 					<table class="nes-table is-bordered is-centered">
 						<thead>
@@ -139,7 +180,7 @@
 					</table>
 				</div>
 			
-				<h6>Special</h6>
+				<h5>Special</h5>
 				<div v-if="modalPokemon.attacks.special" class="nes-table-responsive">
 					<table class="nes-table is-bordered is-centered">
 						<thead>
@@ -181,6 +222,7 @@
 	import axios from 'axios';
 	
 	export default {
+		
 		name: 'PokeGrid',
 		
 		data() {
@@ -196,7 +238,10 @@
 				favorites: JSON.parse(localStorage.getItem('favorites')),
 				showingFavorites: false,
 				modalPokemon: null,
-				showModal: true
+				showModal: true,
+				notifications: [],
+				notificationCount: 0,
+				show: true
 			};
 		},
 		
@@ -215,6 +260,7 @@
 			},
 			
 			containsFavorite: function(selectedPokemon) {
+				if (this.favorites == null) this.favorites = [];
 				return this.favorites.includes(selectedPokemon.id);
 			},
 			
@@ -222,6 +268,7 @@
 				let self = this;
 				self.selectedFavorite = pokemon;
 				let pokeDialog = document.getElementById('pokeDialog');
+				console.log(pokeDialog);
 				if (pokeDialog) pokeDialog.showModal();
 			},
 			
@@ -231,11 +278,15 @@
 				
 				if (removing) {
 					self.favorites = self.favorites.filter(function(id) {
-						if (id === pokemon.id) pokemon.favorited = false;
+						if (id === pokemon.id) {
+							self.showNotification(pokemon.name + ' removed from favorites.');
+							pokemon.favorited = false;
+						}
 						return id !== pokemon.id;
 					});
 				}
 				else {
+					self.showNotification(pokemon.name + ' added to favorites.');
 					self.favorites.push(pokemon.id);
 					self.favoritePokemon.push(pokemon);
 					pokemon.favorited = true;
@@ -251,7 +302,7 @@
 				if (typeFilter === '') return true;
 				let matchingType = false;
 				pokemon.types.forEach(function(type) {
-					if (typeFilter.toLowerCase() === type.toLowerCase()) matchingType = true;
+					if (typeFilter.toLowerCase() === type.toLowerCase() || typeFilter === 'all') matchingType = true;
 				});
 				return matchingType;
 			},
@@ -259,13 +310,14 @@
 			filterByType: function() {
 				let self = this;
 				self.searchTerm = '';
+				
 				let filteredPokemon = null;
 				if (self.showingFavorites) filteredPokemon = self.favoritePokemon;
 				else {
 					filteredPokemon = self.allPokemons;
 				}
 				self.activePokemons = filteredPokemon.filter(function(pokemon) {
-					if (self.hasMatchingType(self.typeFilter, pokemon) || self.typeFilter === 'all') return pokemon;
+					if (self.hasMatchingType(self.typeFilter, pokemon)) return pokemon;
 				});
 			},
 			
@@ -300,13 +352,28 @@
 				}
 			},
 			
+			showNotification: function(message) {
+				let self = this;
+				let myNotification = {
+					"message": message,
+					"count": self.notificationCount
+				};
+				self.notificationCount++;
+				self.notifications.push(myNotification);
+				
+				setTimeout(function() {
+					self.notifications.shift();
+				}, 4000);
+			},
+			
 			triggerShowModal: function(pokemon) {
 				
 				this.modalPokemon = pokemon;
 				this.showModal = true;
 				
 				let pokeModal = document.getElementById('pokeModal');
-				if (pokeModal) pokeModal.showModal();
+				console.log(pokeModal.showModal);
+				if (pokeModal.showModal) pokeModal.showModal();
 			},
 			
 			triggerCloseModal: function() {
@@ -367,6 +434,21 @@
 </script>
 
 <style lang="scss">
+	
+	.fade-enter-active, .fade-leave-active {
+		transition: all 1000ms ease;
+		
+	}
+	
+	.fade-enter {
+		transform: translate(0, 20px);
+		opacity: 0;
+	}
+	
+	.fade-leave-to {
+		transform: translate(0, -(20px)*2);
+		opacity: 0;
+	}
 	
 	.poke-grid {
 		margin-bottom: 100px;
@@ -482,11 +564,12 @@
 						
 						.view {
 							display: flex;
-							justify-content: space-between;
+							justify-content: center;
 							flex-direction: column;
 							
-							.favorite {
-								margin: 0 0 0 auto;
+							.nes-btn {
+								font-size: 10px;
+								margin-bottom: 10px;
 							}
 						}
 						
@@ -560,7 +643,6 @@
 				transition: opacity 25ms ease;
 				// opacity: 0;
 				
-				
 				@include mobile-only {
 					width: 100%;
 					margin-bottom: 20px;
@@ -569,6 +651,7 @@
 				@include tablet {
 					@include grid(3, 25);
 				}
+				
 				.grid-view {
 					
 					.row {
@@ -660,10 +743,9 @@
 			top: 20px;
 		}
 		
-		.attacks table {
-			@include tablet {
-				width: 500px;
-			}
+		.types {
+			font-size: 8px;
+			margin-top: 5px;
 		}
 		
 		.flex {
@@ -683,5 +765,52 @@
 				
 			}
 		}
+		
+		.attacks table {
+			@include tablet {
+				width: 500px;
+			}
+		}
+		
+		.strength-weakness {
+			justify-content: space-evenly;
+			
+			.left, .right {
+				width: 50%;
+				margin: 0;
+				
+				ul {
+					margin: 0;
+				}
+			}
+		}
 	}
+	
+	.poke-notification-tray {
+		position: absolute;
+		top: 20px;
+		right: 20px;
+		
+		.poke-notification {
+			box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+			background-color: white;
+			padding: 15px;
+			width: 400px;
+			margin-bottom: 20px;
+			// transform: translate(0, 20px);
+			// opacity: 0;
+			transition: all 1000ms ease;
+			// transform: translate(0, 0px);
+			// opacity: 1;
+			
+			p {
+				font-size: 12px;
+			}
+			
+			.title {
+				margin-bottom: 10px;
+			}
+		}
+	}
+	
 </style>
