@@ -431,7 +431,7 @@
 </script>
 
 <style lang="scss">
-	
+
 	$overlay-transition: opacity 250ms ease-in-out;
 	
 	.nes-dialog {
@@ -498,16 +498,28 @@
 		}
 		
 		.search-and-type {
-			display: flex;
-			align-items: flex-end;
+			
+			@include tablet {
+				display: flex;
+				align-items: flex-end;
+			}
 			
 			.search {
-				margin-top: -10px;
 				display: block;
-				width: 80%;
+				
+				@include mobile-only {
+					margin-bottom: 20px;
+				}
+				
+				@include tablet {
+					width: 80%;
+					margin-top: -10px;
+				}
 				
 				.nes-field {
-					margin-right: 20px;
+					@include tablet {
+						margin-right: 20px;
+					}
 					
 					input {
 						padding: 15px 10px 10px 12px;
@@ -524,13 +536,19 @@
 			}
 			
 			.nes-select {
-				width: 300px;
 				color: black;
+				
+				@include tablet {
+					width: 300px;
+				}
 				
 				select {
 					height: 50px;
-					
 					outline-color: black;
+					
+					@include mobile-only {
+						background-color: white;
+					}
 					
 					option {
 						line-height: 2;
@@ -541,15 +559,37 @@
 		}
 		
 		.favorites-filter, .view-switcher {
-			display: flex;
+			
+			@include tablet {
+				display: flex;
+			}
 			
 			&.view-switcher {
 				justify-content: space-between;
 			}
 			
+			.left, .right {
+				@include mobile-only {
+					display: flex;
+					justify-content: space-between;
+				}
+			}
+			
 			button {
 				padding: 10px 20px;
 				margin-right: 20px;
+				
+				@include mobile-only {
+					$gutter: 10px;
+					width: calc(50% - 5px);
+					display: block;
+					margin-bottom: 30px;
+					font-size: 12px;
+					
+					&:first-of-type {
+						margin-right: $gutter;
+					}
+				}
 				
 				&:last-of-type {
 					margin-right: 0;
