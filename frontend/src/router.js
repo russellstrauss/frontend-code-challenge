@@ -1,43 +1,10 @@
 import Vue from 'vue';
 import Router from 'vue-router';
+import routes from './routes.js';
 Vue.use(Router);
-
-import Home from './views/Home.vue';
-import Profile from './views/Profile.vue';
-import Intro from './views/Intro.vue';
 
 export default new Router({
 	mode: 'history',
 	base: process.env.BASE_URL,
-	routes: [
-		{
-			path: '/',
-			name: 'Home',
-			component: Home
-		},
-		// {
-		// 	path: '/pokedex/:id',
-		// 	name: 'Profile',
-		// 	component: Profile
-		// },
-		{
-			path: '/profile/:name',
-			name: 'Profile',
-			component: Profile
-		},
-		{
-			path: '/intro',
-			name: 'Intro',
-			component: Intro
-		},
-		{
-			path: '/about',
-			name: 'about',
-			// route level code-splitting
-			// this generates a separate chunk (about.[hash].js) for this route
-			// which is lazy-loaded when the route is visited.
-			component: () =>
-			import(/* webpackChunkName: 'about' */ './views/About.vue')
-		}
-	]
+	routes: routes
 });

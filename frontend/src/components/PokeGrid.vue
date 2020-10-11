@@ -18,19 +18,19 @@
 			<div class="search">
 				<div class="nes-field">
 					<label for="name_field">SEARCH POK&eacute;DEX</label>
-					<input v-on:keyup="triggerSearch" type="text" id="name_field" class="nes-input" v-model="searchTerm" placeholder="POKéMON Name">
+					<input v-on:keyup="filterPokemon" type="text" id="name_field" class="nes-input" v-model="searchTerm" placeholder="POKéMON Name">
 				</div>
 			</div>
 			<div class="nes-select">
-				<select required id="default_select" v-model="typeFilter" v-on:change="filterByType">
+				<select required id="default_select" v-model="typeFilter" v-on:change="filterPokemon">
 					<option value="" disabled selected hidden>Type</option>
-					<option value="all">All Types</option>
+					<option value="">All Types</option>
 					<option v-for="type in types" :key="type" :value="type">{{ type }}</option>
 				</select>
 			</div>
 		</div>
 		
-		<ul :class="view">
+		<transition-group name="poke-effect" tag="ul" :class="view" v-on:enter="pokemonEnter" v-on:before-enter="beforePokemonEnter" v-on:after-enter="afterPokemonEnter">
 			<li v-for="pokemon in activePokemons" :key="pokemon.id" class="pokemon nes-container with-title">
 				
 				<div class="grid-view hide-in-list">
@@ -100,7 +100,7 @@
 				</div>
 
 			</li>
-		</ul>
+		</transition-group>
 		
 		<div class="poke-notification-tray">
 			<transition-group name="notification-fade" tag="div">
@@ -250,11 +250,37 @@
 		
 		methods: {
 			
+			beforePokemonEnter: function(element, onComplete) {
+				console.log('beforePokemonEnter active length: ', this.activePokemons.length);
+			},
+			
+			pokemonEnter: function(element, onComplete) {
+				console.log('pokemonEnter active length', this.activePokemons.length);
+				
+				// console.log(anime.stagger(25, {grid: [3, 20], from: 'first'}));
+				
+				let colCount = 3;
+				let rowCount = 12;
+				let interval = 250;
+				anime({
+					targets: element,
+					opacity: [
+						{value: 1, easing: 'easeInOutQuad', duration: 250}
+					],
+					
+					delay: anime.stagger(interval, {grid: [colCount, rowCount], from: 'first'}) // from 'center', 'first', 'last'
+				});
+			},
+			
+			afterPokemonEnter: function(element, onComplete) { // not a method?
+				console.log(anime.stagger(interval, {grid: [3, 20], from: 'first'}));
+				console.log('afterPokemonEnter active length: ', this.activePokemons.length);
+			},
+			
 			showAll: function() {
 				this.showingFavorites = false;
 				this.activePokemons = this.allPokemons;
 				this.typeFilter = '';
-				self.triggerStagger();
 			},
 			
 			showFavorites: function() {
@@ -267,7 +293,6 @@
 				this.activePokemons = this.allPokemons.filter(function(pokemon) {
 					return pokemon.favorited;
 				});
-				self.triggerStagger();
 			},
 			
 			containsFavorite: function(selectedPokemon) {
@@ -325,43 +350,21 @@
 				if (typeFilter === '') return true;
 				let matchingType = false;
 				pokemon.types.forEach(function(type) {
-					if (typeFilter.toLowerCase() === type.toLowerCase() || typeFilter === 'all') matchingType = true;
+					if (typeFilter.toLowerCase() === type.toLowerCase() || typeFilter === '') matchingType = true;
 				});
 				return matchingType;
 			},
 			
-			filterByType: function() {
+			filterPokemon: function() {
 				let self = this;
-				self.searchTerm = '';
-				
-				let filteredPokemon = null;
-				if (self.showingFavorites) filteredPokemon = self.favoritePokemon;
-				else {
-					filteredPokemon = self.allPokemons;
-				}
-				self.activePokemons = filteredPokemon.filter(function(pokemon) {
-					if (self.hasMatchingType(self.typeFilter, pokemon)) return pokemon;
-				});
-				
-				self.triggerStagger();
-			},
-			
-			triggerSearch: function(event) {
-				let self = this;
-				self.view = 'grid';
-				let filteredPokemon = null;
-				if (self.showingFavorites) filteredPokemon = self.favoritePokemon;
-				else {
-					filteredPokemon = self.allPokemons;
-				}
-				self.activePokemons = filteredPokemon.filter(function(pokemon) {
-					let matchingType = self.hasMatchingType(self.typeFilter, pokemon);
-					if (pokemon.name.toLowerCase().includes(self.searchTerm.toLowerCase()) && (matchingType)) {
-						return pokemon;
-					}
+
+				self.activePokemons = self.allPokemons.filter(function(pokemon) {
+					let matchesFilters = (self.hasMatchingType(self.typeFilter, pokemon) || self.typeFilter === ''); //type filter
+					matchesFilters = matchesFilters && pokemon.name.toLowerCase().includes(self.searchTerm.toLowerCase()); // search
+					if (matchesFilters) return pokemon;
 				});
 			},
-			
+
 			scrollTop: function() {
 				window.scrollTo(0, 0);
 			},
@@ -491,8 +494,6 @@
 							pokemon.favorited = true
 						}
 					});
-					
-					self.triggerStagger();
 				});
 			}
 			catch(error) {
@@ -728,6 +729,24 @@
 			.hide-in-grid {
 				display: none !important;
 			}
+			
+			.poke-effect-enter-active {
+				// opacity: 0;
+			}
+			
+			// .poke-effect-enter-active, .poke-effect-leave-active {
+			// 	transition: opacity 250ms ease, transform 250ms ease;
+			// 	transform: translate(20px, 20px);
+			// }
+			
+			// .poke-effect-enter {
+			// 	transform: translate(0, 0);
+			// 	opacity: 1;
+			// }
+			
+			// .poke-effect-leave-to {
+			// 	opacity: 0;
+			// }
 			
 			.pokemon {
 				$padding: 20px;
