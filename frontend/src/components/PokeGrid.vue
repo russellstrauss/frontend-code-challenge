@@ -31,7 +31,7 @@
 		</div>
 		
 		<transition-group name="poke-effect" tag="ul" :class="view">
-			<li v-for="pokemon in activePokemons" :key="pokemon.id" class="pokemon nes-container with-title">
+			<li v-for="(pokemon, index) in activePokemons" :key="pokemon.id" :data-index="index" class="pokemon nes-container with-title">
 				
 				<div class="grid-view hide-in-list">
 					
@@ -432,6 +432,8 @@
 
 <style lang="scss">
 	
+	$overlay-transition: opacity 250ms ease-in-out;
+	
 	.nes-dialog {
 		position: fixed;
 		top: 50%;
@@ -440,8 +442,11 @@
 		border: 4px solid black;
 		transform: translate(-50%, -50%);
 		z-index: -1000;
+		opacity: 0;
+		transition: $overlay-transition;
 		
 		&.active {
+			opacity: 1;
 			z-index: 101;
 		}
 		
@@ -469,16 +474,18 @@
 	
 	#modalOverlay {
 		background-color: black;
-		opacity: .5;
+		opacity: 0;
 		position: fixed;
 		left: 0;
 		top: 0;
 		width: 100%;
 		height: 100vh;
 		z-index: -1000;
+		transition: $overlay-transition;
 		
 		&.active {
 			z-index: 100;
+			opacity: .5;
 		}
 	}
 	
@@ -672,8 +679,6 @@
 				list-style-type: none;
 				background: none;
 				padding: $padding;
-				
-				// opacity: 0;
 				
 				@include mobile-only {
 					width: 100%;

@@ -4,7 +4,10 @@ import HelloWorld from '@/components/HelloWorld.vue'
 
 // npm run serve in /frontend must be running so the test can hit the server for route and component testing
 
-// These test should be better. Configure tests to get Pokemon routing data, then test all pokemon sub fields
+// These tests should be better. Configure tests to get Pokemon url routing data, then then test real app
+// Test all subfields in Pokemon profile page and some tests for filtering the lists of Pokemon in grid view
+// Make sure all anchor tags lead to somewhere
+// Make sure all img tags do not provide broken img src
 
 describe('HelloWorld', function() {
 	it('renders', async function() {
