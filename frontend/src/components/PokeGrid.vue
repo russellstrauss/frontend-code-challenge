@@ -30,7 +30,7 @@
 			</div>
 		</div>
 		
-		<transition-group name="poke-effect" tag="ul" :class="view" v-on:enter="pokemonEnter" v-on:before-enter="beforePokemonEnter" v-on:after-enter="afterPokemonEnter">
+		<transition-group name="poke-effect" tag="ul" :class="view">
 			<li v-for="pokemon in activePokemons" :key="pokemon.id" class="pokemon nes-container with-title">
 				
 				<div class="grid-view hide-in-list">
@@ -118,6 +118,7 @@
 		
 		<div class="no-favorites-message" v-if="showingFavorites && favorites.length < 1">No favorites added yet.</div>
 		<div class="no-favorites-message" v-if="showingFavorites && activePokemons.length < 1 && searchTerm === ''">No favorites<span v-if="typeFilter"> of {{ typeFilter }} type</span>.</div>
+		<div class="no-favorites-message" v-if="activePokemons.length < 1 && searchTerm !== ''">No results found with search term "{{ searchTerm }}"<span v-if="typeFilter"> of {{ typeFilter }} type</span>.</div>
 		
 		<div class="nes-dialog poke-modal" id="pokeModal">
 			<svg v-on:click="triggerCloseModal" class="close nes-pointer" height="24" width="24" viewBox="0 0 512.001 512.001" xmlns="http://www.w3.org/2000/svg">
@@ -211,7 +212,8 @@
 				<button class="nes-btn is-primary" v-on:click="setFavorite(selectedFavorite)">Confirm</button>
 			</menu>
 		</div>
-		<div id="modalOverlay"></div>
+		<div id="modalOverlay" v-on:click="closeDialogAndModal" class="nes-pointer"></div>
+		<div class="overlay-cover"></div>
 		
 		<button type="button" class="nes-btn is-error scroll-btn active" v-on:click="scrollTop"><span>&lt;</span></button>
 	</div>
@@ -250,49 +252,22 @@
 		
 		methods: {
 			
-			beforePokemonEnter: function(element, onComplete) {
-				console.log('beforePokemonEnter active length: ', this.activePokemons.length);
-			},
-			
-			pokemonEnter: function(element, onComplete) {
-				console.log('pokemonEnter active length', this.activePokemons.length);
-				
-				// console.log(anime.stagger(25, {grid: [3, 20], from: 'first'}));
-				
-				let colCount = 3;
-				let rowCount = 12;
-				let interval = 250;
-				anime({
-					targets: element,
-					opacity: [
-						{value: 1, easing: 'easeInOutQuad', duration: 250}
-					],
-					
-					delay: anime.stagger(interval, {grid: [colCount, rowCount], from: 'first'}) // from 'center', 'first', 'last'
-				});
-			},
-			
-			afterPokemonEnter: function(element, onComplete) { // not a method?
-				console.log(anime.stagger(interval, {grid: [3, 20], from: 'first'}));
-				console.log('afterPokemonEnter active length: ', this.activePokemons.length);
+			closeDialogAndModal: function() {
+				this.triggerCloseModal();
+				this.closeDialog();
 			},
 			
 			showAll: function() {
 				this.showingFavorites = false;
 				this.activePokemons = this.allPokemons;
 				this.typeFilter = '';
+				this.filterPokemon();
 			},
 			
 			showFavorites: function() {
 				this.showingFavorites = true;
 				this.typeFilter = '';
-				this.updateFavoritesView();
-			},
-			
-			updateFavoritesView: function() {
-				this.activePokemons = this.allPokemons.filter(function(pokemon) {
-					return pokemon.favorited;
-				});
+				this.filterPokemon();
 			},
 			
 			containsFavorite: function(selectedPokemon) {
@@ -316,10 +291,9 @@
 			setFavorite: function(pokemon) {
 				
 				let self = this;
-				let removing = self.containsFavorite(pokemon);
-				
 				self.closeDialog();
 				
+				let removing = self.containsFavorite(pokemon);
 				if (removing) {
 					self.favorites = self.favorites.filter(function(id) {
 						if (id === pokemon.id) {
@@ -338,7 +312,7 @@
 					self.favoritePokemon.push(pokemon);
 					pokemon.favorited = true;
 				}
-				if (self.showingFavorites) self.updateFavoritesView();
+				self.filterPokemon();
 				window.localStorage.setItem('favorites', JSON.stringify(self.favorites));
 			},
 			
@@ -357,27 +331,17 @@
 			
 			filterPokemon: function() {
 				let self = this;
-
+				
 				self.activePokemons = self.allPokemons.filter(function(pokemon) {
-					let matchesFilters = (self.hasMatchingType(self.typeFilter, pokemon) || self.typeFilter === ''); //type filter
+					let matchesFilters = (self.hasMatchingType(self.typeFilter, pokemon) || self.typeFilter === ''); // type filter
 					matchesFilters = matchesFilters && pokemon.name.toLowerCase().includes(self.searchTerm.toLowerCase()); // search
+					if (self.showingFavorites) matchesFilters = matchesFilters && (pokemon.favorited); // favorites
 					if (matchesFilters) return pokemon;
 				});
 			},
 
 			scrollTop: function() {
 				window.scrollTo(0, 0);
-			},
-			
-			lsExists: function() {
-				let test = 'test';
-				try {
-					localStorage.setItem(test, test);
-					localStorage.removeItem(test);
-					return true;
-				} catch(e) {
-					return false;
-				}
 			},
 			
 			showNotification: function(message) {
@@ -406,43 +370,6 @@
 				let self = this;
 				self.pokeModal.classList.remove('active');
 				self.overlay.classList.remove('active');
-			},
-			
-			hideAllGridItems: function() {
-				let pokemonItems = document.querySelectorAll('.poke-grid .pokemon');
-				pokemonItems.forEach(function(element) {
-					element.style.opacity = '0';
-				});
-			},
-			
-			triggerStagger: function() {
-				
-				// let self = this;
-				
-				// self.hideAllGridItems();
-				
-				// let colCount = 3;
-				// let rowCount = Math.ceil(self.activePokemons.length / colCount);
-				// let interval = 250;
-				
-				// setTimeout(function() {
-					
-				// 	self.activePokemons.forEach(function(pokemon) {
-				// 		console.log(pokemon.name);
-				// 	});
-					
-				// 	let pokemonItems = document.querySelectorAll('.poke-grid .pokemon');
-				// 	console.log('number to animate: ', pokemonItems.length);
-					
-				// 	anime({
-				// 		targets: '.poke-grid .pokemon',
-				// 		opacity: [
-				// 			{value: 1, easing: 'easeInOutQuad', duration: 250}
-				// 		],
-						
-				// 		delay: anime.stagger(interval, {grid: [colCount, rowCount], from: 'first'}) // from 'center', 'first', 'last'
-				// 	});
-				// }, 0);
 			}
 		},
 		
@@ -530,12 +457,22 @@
 		}
 	}
 	
+	.overlay-cover {
+		background-color: white;
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100vh;
+		z-index: -999;
+	}
+	
 	#modalOverlay {
 		background-color: black;
 		opacity: .5;
+		position: fixed;
 		left: 0;
 		top: 0;
-		position: fixed;
 		width: 100%;
 		height: 100vh;
 		z-index: -1000;
@@ -729,24 +666,6 @@
 			.hide-in-grid {
 				display: none !important;
 			}
-			
-			.poke-effect-enter-active {
-				// opacity: 0;
-			}
-			
-			// .poke-effect-enter-active, .poke-effect-leave-active {
-			// 	transition: opacity 250ms ease, transform 250ms ease;
-			// 	transform: translate(20px, 20px);
-			// }
-			
-			// .poke-effect-enter {
-			// 	transform: translate(0, 0);
-			// 	opacity: 1;
-			// }
-			
-			// .poke-effect-leave-to {
-			// 	opacity: 0;
-			// }
 			
 			.pokemon {
 				$padding: 20px;
