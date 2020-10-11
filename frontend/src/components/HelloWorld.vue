@@ -1,10 +1,18 @@
 <template>
-	<h1>Home {{ msg }}</h1>
+	<h1>HelloWorld {{ msg }}</h1>
 </template>
 
 <script>
 	export default {
-		name: "HelloWorld",
+		name: 'HelloWorld',
+		
+		data() {
+			return {
+				testString: 'testing string',
+				foo: 'default foo value'
+			};
+		},
+		
 		props: {
 			msg: String
 		}
