@@ -21,7 +21,7 @@
 		
 		<div class="upper-profile">
 			<div class="pokemon-art">
-				<img v-if="pokemon.singleDigitID" class="photo-art nes-container" :src="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + pokemon.singleDigitID + '.png'" :alt="pokemon.name">
+				<img v-if="pokemon.singleDigitID" class="photo-art nes-container" :src="assetPath('assets/img/pokemon/' + pokemon.singleDigitID + '.png')" :alt="pokemon.name">
 			</div>
 			<div class="main-info">
 				<div>ID: {{ pokemon.id }}</div>

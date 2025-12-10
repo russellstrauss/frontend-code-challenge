@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "serve": "vite",
-    "build": "node scripts/embed-data.js && vite build",
+    "download-artwork": "node scripts/download-artwork.js",
+    "build": "node scripts/embed-data.js && node scripts/download-artwork.js && vite build",
     "preview": "vite preview",
     "lint": "eslint src",
     "test:e2e": "cypress run",
