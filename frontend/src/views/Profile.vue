@@ -1,17 +1,21 @@
 <template>
-	<div class="profile container">
+	<div class="profile container-fluid">
 		<div class="back-link"><router-link to="/" class="nes-btn is-primary">&lt; Back to POK&eacute;DEX</router-link></div>
 		<div class="pagination">
-			<router-link v-if="pokemon.prevEntry" :to="'/profile/' + pokemon.prevEntry.name.toLowerCase()" class="nes-btn is-primary">&lt; PREV</router-link>
-			<h1>POK&eacute;DEX Entry #{{ pokemon.id }}</h1>
-			<router-link v-if="pokemon.nextEntry" :to="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</router-link>
+			<button v-if="pokemon.prevEntry" @click="navigateToPrev" class="nes-btn is-primary">&lt; PREV</button>
+			<span v-else class="nes-btn" style="opacity: 0.5; cursor: not-allowed;">&lt; PREV</span>
+			<h1 v-if="pokemon.id">POK&eacute;DEX Entry #{{ pokemon.id }}</h1>
+			<button v-if="pokemon.nextEntry" @click="navigateToNext" class="nes-btn is-primary">NEXT &gt;</button>
+			<span v-else class="nes-btn" style="opacity: 0.5; cursor: not-allowed;">NEXT &gt;</span>
 		</div>
 		
 		<div class="pagination-mobile">
-			<h2>POK&eacute;DEX Entry #{{ pokemon.id }}</h2>
+			<h2 v-if="pokemon.id">POK&eacute;DEX Entry #{{ pokemon.id }}</h2>
 			<div class="buttons">
-				<router-link v-if="pokemon.prevEntry" :to="'/profile/' + pokemon.prevEntry.name.toLowerCase()" class="nes-btn is-primary">&lt; PREV</router-link>
-				<router-link v-if="pokemon.nextEntry" :to="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</router-link>
+				<button v-if="pokemon.prevEntry" @click="navigateToPrev" class="nes-btn is-primary">&lt; PREV</button>
+				<span v-else class="nes-btn" style="opacity: 0.5; cursor: not-allowed;">&lt; PREV</span>
+				<button v-if="pokemon.nextEntry" @click="navigateToNext" class="nes-btn is-primary">NEXT &gt;</button>
+				<span v-else class="nes-btn" style="opacity: 0.5; cursor: not-allowed;">NEXT &gt;</span>
 			</div>
 		</div>
 		
@@ -133,7 +137,7 @@
 				<table class="nes-table is-bordered is-centered">
 					<tbody>
 						<tr>
-							<td v-for="evolution in pokemon.prevEvolutions" :key="evolution.id" class="previous">
+							<td v-for="evolution in (pokemon.prevEvolutions || [])" :key="evolution.id" class="previous">
 								<div class="nes-badge"><span class="previous is-primary">Previous</span></div>
 								<router-link :to="'/profile/' + evolution.name.toLowerCase()">
 									<img :src="assetPath('assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png')" :alt="evolution.name">
@@ -147,7 +151,7 @@
 									{{ pokemon.id }} {{ pokemon.name }}
 								</router-link>
 							</td>
-							<td v-for="evolution in pokemon.evolutions" :key="evolution.id" class="previous">
+							<td v-for="evolution in (pokemon.evolutions || [])" :key="evolution.id" class="previous">
 								<router-link :to="'/profile/' + evolution.name.toLowerCase()">
 									<img :src="assetPath('assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png')" :alt="evolution.name">
 									{{ evolution.id }} {{ evolution.name }}
@@ -219,13 +223,26 @@
 						console.error('Error playing audio:', error);
 					});
 				}
-			}
-		},
-		
-		async mounted() {
+			},
 			
-			let self = this;
-			try {
+			navigateToPrev: function() {
+				if (this.pokemon.prevEntry) {
+					console.log('Navigating to previous:', this.pokemon.prevEntry.name);
+					this.$router.push('/profile/' + this.pokemon.prevEntry.name.toLowerCase());
+				}
+			},
+			
+			navigateToNext: function() {
+				if (this.pokemon.nextEntry) {
+					console.log('Navigating to next:', this.pokemon.nextEntry.name);
+					this.$router.push('/profile/' + this.pokemon.nextEntry.name.toLowerCase());
+				}
+			},
+			
+			loadPokemon: function() {
+				let self = this;
+				self.errorMessage = null;
+				
 				fetchPokemons({ limit: 151 })
 					.then((result) => {
 						let pokemonID = '';
@@ -240,27 +257,45 @@
 						});
 						if (pokemon.length) {
 							self.pokemon = pokemon[0];
-							console.log(self.pokemon);
-							self.pokemon.prevEntry = result.data.data.pokemons.edges.filter(function(eachPokemon) {
+							console.log('Loaded Pokemon:', self.pokemon.name, 'ID:', self.pokemon.id);
+							
+							// Find previous Pokemon
+							const prevFiltered = result.data.data.pokemons.edges.filter(function(eachPokemon) {
 								return parseInt(eachPokemon.id) === parseInt(pokemonID) - 1;
 							});
-							self.pokemon.prevEntry = self.pokemon.prevEntry[0];
-							self.pokemon.nextEntry = result.data.data.pokemons.edges.filter(function(eachPokemon) {
+							self.pokemon.prevEntry = prevFiltered.length > 0 ? prevFiltered[0] : null;
+							
+							// Find next Pokemon
+							const nextFiltered = result.data.data.pokemons.edges.filter(function(eachPokemon) {
 								return parseInt(eachPokemon.id) === parseInt(pokemonID) + 1;
 							});
-							self.pokemon.nextEntry = self.pokemon.nextEntry[0];
+							self.pokemon.nextEntry = nextFiltered.length > 0 ? nextFiltered[0] : null;
+							
+							console.log('Prev entry:', self.pokemon.prevEntry ? self.pokemon.prevEntry.name : 'none');
+							console.log('Next entry:', self.pokemon.nextEntry ? self.pokemon.nextEntry.name : 'none');
 						}
 						else {
-							self.errorMessage = "Error loading Pokemon #" + self.$route.params.id;
+							self.errorMessage = "Error loading Pokemon #" + self.$route.params.name;
 						}
 					})
 					.catch(error => {
-						console.log(error);
+						console.error('Error loading Pokemon:', error);
 						self.errorMessage = "Error loading Pokemon data";
 					});
 			}
-			catch(error) {
-				console.log(error);
+		},
+		
+		async mounted() {
+			this.loadPokemon();
+		},
+		
+		watch: {
+			'$route.params.name': function(newName, oldName) {
+				// Reload Pokemon data when route param changes
+				if (newName !== oldName) {
+					console.log('Route changed from', oldName, 'to', newName);
+					this.loadPokemon();
+				}
 			}
 		}
 	};
@@ -277,6 +312,13 @@
 			justify-content: space-between;
 			align-items: center;
 			margin-bottom: 50px;
+			
+			a, span {
+				display: inline-block;
+				text-decoration: none;
+				pointer-events: auto;
+				cursor: pointer;
+			}
 			
 			@include mobile-only {
 				display: none;
@@ -295,6 +337,13 @@
 					display: flex;
 					justify-content: space-between;
 					margin-bottom: 80px;
+					
+					a, span {
+						display: inline-block;
+						text-decoration: none;
+						pointer-events: auto;
+						cursor: pointer;
+					}
 				}
 			}
 			

@@ -1,5 +1,5 @@
 <template>
-	<div class="poke-grid container">
+	<div class="poke-grid container-fluid">
 		<!-- Debug: Component is rendering -->
 		<div v-if="false" style="background: red; color: white; padding: 10px;">
 			DEBUG: PokeGrid template is rendering
