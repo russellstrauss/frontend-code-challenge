@@ -1,13 +1,13 @@
 <template>
 	<div class="intro">
-		<img v-if="!begin" v-on:click="triggerStart" class="power-on nes-pointer" src="/assets/img/gb.png" alt="Start">
+		<img v-if="!begin" v-on:click="triggerStart" class="power-on nes-pointer" :src="assetPath('assets/img/gb.png')" alt="Start">
 		<div class="intro">
-			<img id="nintendo" src="/assets/img/nintendo-logo.png" alt="Nintendo Logo">
+			<img id="nintendo" :src="assetPath('assets/img/nintendo-logo.png')" alt="Nintendo Logo">
 			
-			<audio id="ding"><source src="/assets/sounds/gameboy-start.mp3" type="audio/mpeg" preload="auto" style="display: none" muted>Your browser does not support the audio tag.</audio>
-			<audio id="music"><source src="/assets/sounds/intro.mp3" type="audio/mpeg" preload="auto" style="display: none" muted>Your browser does not support the audio tag.</audio>
+			<audio id="ding"><source :src="assetPath('assets/sounds/gameboy-start.mp3')" type="audio/mpeg" preload="auto" style="display: none" muted>Your browser does not support the audio tag.</audio>
+			<audio id="music"><source :src="assetPath('assets/sounds/intro.mp3')" type="audio/mpeg" preload="auto" style="display: none" muted>Your browser does not support the audio tag.</audio>
 			<div class="textbox">
-				<img class="oak" src="/assets/img/oak.png" alt="Professor Oak">
+				<img class="oak" :src="assetPath('assets/img/oak.png')" alt="Professor Oak">
 				<div class="welcome nes-container is-centered container">
 					<p>Hello there! Welcome to the wonderful world of POK&eacute;MON!</p>
 					<p>My name is OAK! People call me the POK&eacute;MON PROF!</p>
@@ -39,7 +39,34 @@ export default {
 		};
 	},
 	
+	computed: {
+		assetBase() {
+			// Detect base path same way as router
+			if (typeof window !== 'undefined') {
+				const pathname = window.location.pathname;
+				const match = pathname.match(/^(\/apps\/pokedex\/)/);
+				if (match) {
+					return match[1];
+				}
+				// Fallback: detect from script location
+				const script = document.querySelector('script[type="module"]');
+				if (script && script.src) {
+					const scriptPath = new URL(script.src, window.location.href).pathname;
+					const scriptDir = scriptPath.substring(0, scriptPath.lastIndexOf('/') + 1);
+					return scriptDir;
+				}
+			}
+			return './';
+		}
+	},
+	
 	methods: {
+		
+		assetPath: function(path) {
+			// Remove leading slash if present, then prepend base
+			const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+			return `${this.assetBase}${cleanPath}`;
+		},
 		
 		ding: function() {
 			let self = this;
@@ -70,8 +97,7 @@ export default {
 		
 		goHome: function() {
 			// window.localStorage.setItem('completedIntro', true);
-			window.location.href ='/';
-			
+			this.$router.push('/');
 		},
 		
 		showIntro: function() {

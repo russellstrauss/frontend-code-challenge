@@ -1,17 +1,17 @@
 <template>
 	<div class="profile container">
-		<div class="back-link"><a href="/" class="nes-btn is-primary">&lt; Back to POK&eacute;DEX</a></div>
+		<div class="back-link"><router-link to="/" class="nes-btn is-primary">&lt; Back to POK&eacute;DEX</router-link></div>
 		<div class="pagination">
-			<a v-if="pokemon.prevEntry" :href="'/profile/' + pokemon.prevEntry.name.toLowerCase()" class="nes-btn is-primary">&lt; PREV</a>
+			<router-link v-if="pokemon.prevEntry" :to="'/profile/' + pokemon.prevEntry.name.toLowerCase()" class="nes-btn is-primary">&lt; PREV</router-link>
 			<h1>POK&eacute;DEX Entry #{{ pokemon.id }}</h1>
-			<a v-if="pokemon.nextEntry" :href="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</a>
+			<router-link v-if="pokemon.nextEntry" :to="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</router-link>
 		</div>
 		
 		<div class="pagination-mobile">
 			<h2>POK&eacute;DEX Entry #{{ pokemon.id }}</h2>
 			<div class="buttons">
-				<a v-if="pokemon.prevEntry" :href="'/profile/' + pokemon.prevEntry.name.toLowerCase()" class="nes-btn is-primary">&lt; PREV</a>
-				<a v-if="pokemon.nextEntry" :href="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</a>
+				<router-link v-if="pokemon.prevEntry" :to="'/profile/' + pokemon.prevEntry.name.toLowerCase()" class="nes-btn is-primary">&lt; PREV</router-link>
+				<router-link v-if="pokemon.nextEntry" :to="'/profile/' + pokemon.nextEntry.name.toLowerCase()" class="nes-btn is-primary">NEXT &gt;</router-link>
 			</div>
 		</div>
 		
@@ -28,7 +28,7 @@
 					<div class="roar-button">
 						<a class="nes-btn is-primary" v-on:click="playRoar" v-if="pokemon.singleDigitID">
 							<audio id="pokemonRoar">
-								<source :src="'/assets/sounds/' + pokemon.singleDigitID + '.mp3'" type="audio/mpeg" preload="auto" style="display: none" muted> Your browser does not support the audio element.
+								<source :src="assetPath('assets/sounds/' + pokemon.singleDigitID + '.mp3')" type="audio/mpeg" preload="auto" style="display: none" muted> Your browser does not support the audio element.
 							</audio>
 							<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="93.038px" height="93.038px" viewBox="0 0 93.038 93.038" style="enable-background:new 0 0 93.038 93.038;" xml:space="preserve">
 								<g>
@@ -135,23 +135,23 @@
 						<tr>
 							<td v-for="evolution in pokemon.prevEvolutions" :key="evolution.id" class="previous">
 								<div class="nes-badge"><span class="previous is-primary">Previous</span></div>
-								<a :href=" '/profile/' + evolution.name.toLowerCase()">
-									<img :src="'/assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png'" :alt="evolution.name">
+								<router-link :to="'/profile/' + evolution.name.toLowerCase()">
+									<img :src="assetPath('assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png')" :alt="evolution.name">
 									{{ evolution.id }} {{ evolution.name }}
-								</a>
+								</router-link>
 							</td>
 							<td class="previous">
 								<div class="nes-badge"><span class="is-primary">Current</span></div>
-								<a :href=" '/profile/' + pokemon.name.toLowerCase()">
-									<img :src="'/assets/img/sprites/red-blue/' + pokemon.singleDigitID + '.png'" :alt="pokemon.name">
+								<router-link :to="'/profile/' + pokemon.name.toLowerCase()">
+									<img :src="assetPath('assets/img/sprites/red-blue/' + pokemon.singleDigitID + '.png')" :alt="pokemon.name">
 									{{ pokemon.id }} {{ pokemon.name }}
-								</a>
+								</router-link>
 							</td>
 							<td v-for="evolution in pokemon.evolutions" :key="evolution.id" class="previous">
-								<a :href=" '/profile/' + evolution.name.toLowerCase()">
-									<img :src="'/assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png'" :alt="evolution.name">
+								<router-link :to="'/profile/' + evolution.name.toLowerCase()">
+									<img :src="assetPath('assets/img/sprites/red-blue/' + stripLeadingZeros(evolution.id) + '.png')" :alt="evolution.name">
 									{{ evolution.id }} {{ evolution.name }}
-								</a>
+								</router-link>
 							</td>					
 						</tr>
 					</tbody>
@@ -179,14 +179,46 @@
 			};
 		},
 		
+		computed: {
+			assetBase() {
+				// Detect base path same way as router
+				if (typeof window !== 'undefined') {
+					const pathname = window.location.pathname;
+					const match = pathname.match(/^(\/apps\/pokedex\/)/);
+					if (match) {
+						return match[1];
+					}
+					// Fallback: detect from script location
+					const script = document.querySelector('script[type="module"]');
+					if (script && script.src) {
+						const scriptPath = new URL(script.src, window.location.href).pathname;
+						const scriptDir = scriptPath.substring(0, scriptPath.lastIndexOf('/') + 1);
+						return scriptDir;
+					}
+				}
+				return './';
+			}
+		},
+		
 		methods: {
+			assetPath: function(path) {
+				// Remove leading slash if present, then prepend base
+				const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+				return `${this.assetBase}${cleanPath}`;
+			},
+			
 			stripLeadingZeros: function(string) {
 				return string.replace(/^0+/, '')
 			},
+			
 			playRoar: function() {
 				let sound = document.getElementById('pokemonRoar');
-				console.log(sound);
-				if (sound) sound.play();
+				console.log('Playing roar sound, audio element:', sound);
+				if (sound) {
+					sound.play().catch(error => {
+						console.error('Error playing audio:', error);
+					});
+				}
 			}
 		},
 		
@@ -202,7 +234,7 @@
 							if (typeof self.$route.params.name !== 'undefined' && self.$route.params.name.toLowerCase() == pokemon.name.toLowerCase()) {
 								pokemonID = pokemon.id;
 								pokemon.singleDigitID = pokemonID.replace(/^0+/, '');
-								pokemon.spritePath = '/assets/img/sprites/red-blue/' + pokemon.singleDigitID + '.png';
+								pokemon.spritePath = self.assetPath('assets/img/sprites/red-blue/' + pokemon.singleDigitID + '.png');
 								return pokemon
 							}
 						});
