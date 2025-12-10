@@ -17,7 +17,7 @@
 		
 		<div class="upper-profile">
 			<div class="pokemon-art">
-				<img v-if="pokemon.singleDigitID" class="photo-art nes-container" :src="'https://pokeres.bastionbot.org/images/pokemon/' + pokemon.singleDigitID + '.png'" :alt="pokemon.name">
+				<img v-if="pokemon.singleDigitID" class="photo-art nes-container" :src="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + pokemon.singleDigitID + '.png'" :alt="pokemon.name">
 			</div>
 			<div class="main-info">
 				<div>ID: {{ pokemon.id }}</div>
@@ -166,7 +166,7 @@
 </template>
 
 <script>
-	import axios from 'axios';
+	import { fetchPokemons } from '../services/pokemonData';
 	
 	export default {
 		
@@ -194,56 +194,38 @@
 			
 			let self = this;
 			try {
-				
-				let graphQuery = axios({
-					url: 'http://localhost:4000/graphql',
-					method: 'post',
-					data: {
-						query: 
-						`query {
-							pokemons(query: { limit: 151 }) {
-								edges {
-									id, name, classification, types, resistant, weaknesses,
-									prevEvolutions { id, name },
-									evolutions { id, name },
-									height { maximum, minimum },
-									weight { maximum, minimum },
-									attacks {
-										fast { name, type, damage },
-										special { name, type, damage }
-									}
-								} 
+				fetchPokemons({ limit: 151 })
+					.then((result) => {
+						let pokemonID = '';
+						let pokemon = result.data.data.pokemons.edges.filter(function(pokemon) {
+							
+							if (typeof self.$route.params.name !== 'undefined' && self.$route.params.name.toLowerCase() == pokemon.name.toLowerCase()) {
+								pokemonID = pokemon.id;
+								pokemon.singleDigitID = pokemonID.replace(/^0+/, '');
+								pokemon.spritePath = '/assets/img/sprites/red-blue/' + pokemon.singleDigitID + '.png';
+								return pokemon
 							}
-						}`
-					}
-				})
-				.then((result) => {
-					let pokemonID = '';
-					let pokemon = result.data.data.pokemons.edges.filter(function(pokemon) {
-						
-						if (typeof self.$route.params.name !== 'undefined' && self.$route.params.name.toLowerCase() == pokemon.name.toLowerCase()) {
-							pokemonID = pokemon.id;
-							pokemon.singleDigitID = pokemonID.replace(/^0+/, '');
-							pokemon.spritePath = '/assets/img/sprites/red-blue/' + pokemon.singleDigitID + '.png';
-							return pokemon
+						});
+						if (pokemon.length) {
+							self.pokemon = pokemon[0];
+							console.log(self.pokemon);
+							self.pokemon.prevEntry = result.data.data.pokemons.edges.filter(function(eachPokemon) {
+								return parseInt(eachPokemon.id) === parseInt(pokemonID) - 1;
+							});
+							self.pokemon.prevEntry = self.pokemon.prevEntry[0];
+							self.pokemon.nextEntry = result.data.data.pokemons.edges.filter(function(eachPokemon) {
+								return parseInt(eachPokemon.id) === parseInt(pokemonID) + 1;
+							});
+							self.pokemon.nextEntry = self.pokemon.nextEntry[0];
 						}
+						else {
+							self.errorMessage = "Error loading Pokemon #" + self.$route.params.id;
+						}
+					})
+					.catch(error => {
+						console.log(error);
+						self.errorMessage = "Error loading Pokemon data";
 					});
-					if (pokemon.length) {
-						self.pokemon = pokemon[0];
-						console.log(self.pokemon);
-						self.pokemon.prevEntry = result.data.data.pokemons.edges.filter(function(eachPokemon) {
-							if (parseInt(pokemonID) - 1 == eachPokemon.id) return eachPokemon;
-						});
-						self.pokemon.prevEntry = self.pokemon.prevEntry[0];
-						self.pokemon.nextEntry = result.data.data.pokemons.edges.filter(function(eachPokemon) {
-							if (parseInt(pokemonID) + 1 == eachPokemon.id) return eachPokemon;
-						});
-						self.pokemon.nextEntry = self.pokemon.nextEntry[0];
-					}
-					else {
-						self.errorMessage = "Error loading Pokemon #" + self.$route.params.id;
-					}
-				});
 			}
 			catch(error) {
 				console.log(error);

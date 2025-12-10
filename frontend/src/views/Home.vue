@@ -21,6 +21,10 @@ export default {
 		return {
 			// pokemons: []
 		}
+	},
+	
+	mounted() {
+		console.log('Home component mounted');
 	}
 };
 </script>

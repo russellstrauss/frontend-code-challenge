@@ -1,7 +1,14 @@
 <template>
 	<div class="poke-grid container">
+		<!-- Debug: Component is rendering -->
+		<div v-if="false" style="background: red; color: white; padding: 10px;">
+			DEBUG: PokeGrid template is rendering
+		</div>
 		
 		<h1>POK&eacute;DEX</h1>
+		<div v-if="activePokemons.length === 0 && allPokemons.length === 0" style="padding: 20px;">
+			Loading Pokemon data...
+		</div>
 		
 		<div class="view-switcher">
 			<div class="left">
@@ -47,16 +54,16 @@
 							</div>
 						</div>
 						
-						<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="showFavoriteDialog(pokemon)"></div>
-						
-						<a :href="'/profile/' + pokemon.name.toLowerCase()">
-							<img class="pokemon-profile-pic" :src="'/assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png'" :alt="pokemon.name">
-						</a>
-						
-						<div class="row">
-							<a class="nes-btn" v-on:click="triggerShowModal(pokemon)">Quick View</a>
-							<a class="nes-btn" :href="'/profile/' + pokemon.name.toLowerCase()">View &gt;</a>
-						</div>
+					<div class="favorite" :class="{ 'active': pokemon.favorited }" :style="{ backgroundImage: 'url(' + assetPath('assets/img/heart' + (pokemon.favorited ? '-active' : '') + '.png') + ')' }" v-on:click="showFavoriteDialog(pokemon)"></div>
+					
+					<router-link :to="'/profile/' + pokemon.name.toLowerCase()">
+						<img class="pokemon-profile-pic" :src="assetPath('assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png')" :alt="pokemon.name">
+					</router-link>
+					
+					<div class="row">
+						<a class="nes-btn" v-on:click="triggerShowModal(pokemon)">Quick View</a>
+						<router-link class="nes-btn" :to="'/profile/' + pokemon.name.toLowerCase()">View &gt;</router-link>
+					</div>
 					</div>
 				</div>
 				
@@ -64,9 +71,9 @@
 					<h3 class="title">{{ pokemon.name }}</h3>
 					<div class="details">
 						
-						<a :href="'/profile/' + pokemon.name.toLowerCase()">
-							<img class="pokemon-profile-pic" :src="'/assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png'" :alt="pokemon.name">
-						</a>
+						<router-link :to="'/profile/' + pokemon.name.toLowerCase()">
+							<img class="pokemon-profile-pic" :src="assetPath('assets/img/sprites/red-blue/' + pokemon.id.replace(/^0+/, '') + '.png')" :alt="pokemon.name">
+						</router-link>
 						
 						<div class="row">
 							<div>ID: {{ pokemon.id }}</div>
@@ -90,11 +97,11 @@
 							</ul>
 						</div>
 						
-						<div class="favorite" :class="{ 'active': pokemon.favorited }" v-on:click="showFavoriteDialog(pokemon)"></div>
+						<div class="favorite" :class="{ 'active': pokemon.favorited }" :style="{ backgroundImage: 'url(' + assetPath('assets/img/heart' + (pokemon.favorited ? '-active' : '') + '.png') + ')' }" v-on:click="showFavoriteDialog(pokemon)"></div>
 						
 						<div class="view">
 							<a class="nes-btn" v-on:click="triggerShowModal(pokemon)">Quick View</a>
-							<a class="nes-btn is-success" :href="'/profile/' + pokemon.name.toLowerCase()">View &gt;</a>
+							<router-link class="nes-btn is-success" :to="'/profile/' + pokemon.name.toLowerCase()">View &gt;</router-link>
 						</div>
 					</div>
 				</div>
@@ -106,7 +113,7 @@
 			<transition-group name="notification-fade" tag="div">
 				<div class="poke-notification nes-container" v-for="notification in notifications" :key="'id' + notification.count">
 					<div class="flex">
-						<img class="poke-ball" :src="'/assets/img/poke-ball.png'" alt="Poke Ball Icon">
+						<img class="poke-ball" :src="assetPath('assets/img/poke-ball.png')" alt="Poke Ball Icon">
 						<div>
 							<p class="title">POK&eacute; Dialog</p>
 							<p>{{ notification.message }}</p>
@@ -126,9 +133,9 @@
 			</svg>
 			<div class="flex" v-if="modalPokemon">
 				<div class="left">
-					<a :href="'/profile/' + modalPokemon.name.toLowerCase()">
-						<img class="pokemon-profile-pic" :src="'/assets/img/sprites/red-blue/' + modalPokemon.id.replace(/^0+/, '') + '.png'" :alt="modalPokemon.name">
-					</a>
+					<router-link :to="'/profile/' + modalPokemon.name.toLowerCase()">
+						<img class="pokemon-profile-pic" :src="assetPath('assets/img/sprites/red-blue/' + modalPokemon.id.replace(/^0+/, '') + '.png')" :alt="modalPokemon.name">
+					</router-link>
 				</div>
 				<div class="right">
 					<h2 class="title">POK&eacute; Modal</h2>
@@ -221,8 +228,8 @@
 
 <script>
 	
-	import axios from 'axios';
 	import anime from 'animejs';
+	import { fetchPokemons } from '../services/pokemonData';
 	
 	export default {
 		
@@ -238,7 +245,7 @@
 				types: ['Normal', 'Bug', 'Dragon', 'Ice', 'Fighting', 'Fire', 'Flying', 'Grass', 'Ghost', 'Ground', 'Electric', 'Poison', 'Psychic', 'Rock', 'Water'],
 				typeFilter: '',
 				selectedFavorite: '',
-				favorites: JSON.parse(localStorage.getItem('favorites')),
+				favorites: JSON.parse(localStorage.getItem('favorites')) || [],
 				showingFavorites: false,
 				modalPokemon: null,
 				showModal: true,
@@ -250,7 +257,21 @@
 			};
 		},
 		
+		computed: {
+			assetBase() {
+				// Get base URL, normalize './' to empty string for relative paths
+				const base = import.meta.env.BASE_URL;
+				return base === './' ? '' : base;
+			}
+		},
+		
 		methods: {
+			
+			assetPath: function(path) {
+				// Remove leading slash if present, then prepend base
+				const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+				return `${this.assetBase}${cleanPath}`;
+			},
 			
 			closeDialogAndModal: function() {
 				this.triggerCloseModal();
@@ -373,59 +394,49 @@
 			}
 		},
 		
-		async mounted() {
+		async 		mounted() {
 			let self = this;
 			
-			console.clear();
+			console.log('PokeGrid component mounted');
 			
 			self.pokeModal = document.getElementById('pokeModal');
 			self.pokeDialog = document.getElementById('pokeDialog');
 			self.overlay = document.getElementById('modalOverlay');
 			
 			let previousFavorites = JSON.parse(localStorage.getItem('favorites'));
-			if (typeof previousFavorites != 'undefined') window.localStorage.setItem('favorites', JSON.stringify(self.favorites));
-			else {
+			if (previousFavorites != null && previousFavorites !== undefined) {
 				self.favorites = previousFavorites;
+			} else {
+				window.localStorage.setItem('favorites', JSON.stringify(self.favorites));
 			}
 			
-			try {
-				let graphQuery = axios({
-					url: 'http://localhost:4000/graphql',
-					method: 'post',
-					data: {
-						query: `
-							query {
-								pokemons(query: { limit: 151 }) {
-									edges {
-										id, name, classification, types, resistant, weaknesses,
-										evolutions { id, name },
-										height { maximum, minimum },
-										weight { maximum, minimum },
-										attacks {
-											fast { name, type, damage },
-											special { name, type, damage }
-										}
-									} 
-								}
+			console.log('PokeGrid: Starting to fetch pokemons...');
+			fetchPokemons({ limit: 151 })
+				.then((result) => {
+					console.log('PokeGrid: Data received, edges count:', result?.data?.data?.pokemons?.edges?.length);
+					if (result && result.data && result.data.data && result.data.data.pokemons && result.data.data.pokemons.edges) {
+						self.allPokemons = result.data.data.pokemons.edges;
+						self.activePokemons = result.data.data.pokemons.edges;
+						console.log('PokeGrid: activePokemons set, length:', self.activePokemons.length);
+						
+						self.allPokemons.forEach(function(pokemon) {
+							if (self.favorites && self.favorites.includes(pokemon.id)) {
+								self.favoritePokemon.push(pokemon);
+								pokemon.favorited = true
 							}
-						`
+						});
+						
+						// Force Vue to recognize the change
+						self.$nextTick(() => {
+							console.log('PokeGrid: Next tick - activePokemons length:', self.activePokemons.length);
+						});
+					} else {
+						console.error('PokeGrid: Invalid data structure:', result);
 					}
 				})
-				.then((result) => {
-					self.allPokemons = result.data.data.pokemons.edges;
-					self.activePokemons = result.data.data.pokemons.edges;
-					
-					self.allPokemons.forEach(function(pokemon) {
-						if (self.favorites.includes(pokemon.id)) {
-							self.favoritePokemon.push(pokemon);
-							pokemon.favorited = true
-						}
-					});
+				.catch(error => {
+					console.error('PokeGrid: Error fetching pokemons:', error);
 				});
-			}
-			catch(error) {
-				console.log(error);
-			}
 		}
 	};
 </script>
@@ -602,11 +613,6 @@
 			height: 24px;
 			margin-top: 10px;
 			background-size: 100%;
-			background-image: url(/assets/img/heart.png);
-			
-			&.active {
-				background-image: url(/assets/img/heart-active.png);
-			}
 		}
 		
 		.list {

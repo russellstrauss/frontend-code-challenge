@@ -1,4 +1,5 @@
 // Elements – styling for bare HTML elements
+@use 'mixins' as *;
 
 html {
 	background-color: white;

@@ -1,8 +1,19 @@
-// global
-@import 'responsive';
-@import 'mixins';
-@import 'elements';
-@import 'global';
-@import 'layout';
+// global - forward all modules so they're available to files that import main.scss
+// Using both @forward and @use ensures modules are loaded and forwarded
+@forward 'responsive';
+@use 'responsive' as *;
 
-@import 'types';
+@forward 'mixins';
+@use 'mixins' as *;
+
+@forward 'elements';
+@use 'elements' as *;
+
+@forward 'global';
+@use 'global' as *;
+
+@forward 'layout';
+@use 'layout' as *;
+
+@forward 'types';
+@use 'types' as *;
