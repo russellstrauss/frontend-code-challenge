@@ -86,23 +86,26 @@
 						
 						<div class="weaknesses">
 							<h6>Weaknesses</h6>
-							<ul class="weaknesses">
+							<ul>
 								<li v-for="weakness in pokemon.weaknesses" :key="weakness.toString()">{{ weakness }}</li>
 							</ul>
 						</div>
 						<div class="resistance">
 							<h6>Resistance</h6>
-							<ul class="resistant">
+							<ul>
 								<li v-for="resistance in pokemon.resistant" :key="resistance.toString()">{{ resistance }}</li>
 							</ul>
 						</div>
 						
-						<div class="favorite" :class="{ 'active': pokemon.favorited }" :style="{ backgroundImage: 'url(' + assetPath('assets/img/heart' + (pokemon.favorited ? '-active' : '') + '.png') + ')' }" v-on:click="showFavoriteDialog(pokemon)"></div>
-						
-						<div class="view">
-							<a class="nes-btn" v-on:click="triggerShowModal(pokemon)">Quick View</a>
-							<router-link class="nes-btn is-success" :to="'/profile/' + pokemon.name.toLowerCase()">View &gt;</router-link>
+						<div class="buttons-list">
+							<div class="favorite" :class="{ 'active': pokemon.favorited }" :style="{ backgroundImage: 'url(' + assetPath('assets/img/heart' + (pokemon.favorited ? '-active' : '') + '.png') + ')' }" v-on:click="showFavoriteDialog(pokemon)"></div>
+							<div class="view">
+								<a class="nes-btn" v-on:click="triggerShowModal(pokemon)">Quick View</a>
+								<router-link class="nes-btn is-success" :to="'/profile/' + pokemon.name.toLowerCase()">View &gt;</router-link>
+							</div>
 						</div>
+
+						
 					</div>
 				</div>
 
@@ -642,10 +645,67 @@
 				.list-view {
 					
 					.details {
+						@include mobile-only {
+							flex-direction: column;
+						}
 						@include tablet {
 							display: flex;
 							justify-content: space-between;
 							align-items: stretch;
+						}
+
+						>a, .row, .pokemon-profile-pic, .types li {
+							@include mobile-only {
+								width: 100%;
+							}
+						}
+
+						.pokemon-profile-pic {
+							@include mobile-only {
+								width: 100%;
+								margin: 0 0 20px 0;
+							}
+						}
+
+						.buttons-list {
+							display: flex;
+
+							@include tablet {
+								align-self: flex-end;
+								flex-direction: column;
+							}
+
+							@include mobile-only {
+								flex-direction: row;
+								justify-content: space-between;
+								width: 100%;
+								align-items: center;
+							}
+
+							.favorite {
+								@include tablet {
+									align-self: center;
+									margin: 0 0 20px 0;
+								}
+							}
+
+							.view {
+								@include mobile-only {
+									display: flex;
+									justify-content: space-between;
+									flex-direction: row;
+									width: calc(80%);
+								}
+							}
+						}
+
+						.favorite {
+							@include mobile-only {
+								margin: 0;
+							}
+							@include tablet {
+								margin: 0 0 10px 0;
+							}
 						}
 						
 						.view {
@@ -660,6 +720,11 @@
 						}
 						
 						.types {
+							@include mobile-only {
+								margin-bottom: 20px;
+								padding-right: 5px;
+							}
+
 							li {
 								display: block;
 								margin-top: 10px;
@@ -667,6 +732,10 @@
 						}
 						
 						.weaknesses, .resistance {
+
+							@include mobile-only {
+								margin: 0 0 10px 0;
+							}
 							
 							h6 {
 								margin-top: 0;
