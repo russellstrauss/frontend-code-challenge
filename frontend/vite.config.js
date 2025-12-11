@@ -1,8 +1,11 @@
-const { defineConfig } = require('vite');
-const vue = require('@vitejs/plugin-vue');
-const path = require('path');
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-module.exports = defineConfig({
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
   plugins: [vue()],
   publicDir: 'public',
   resolve: {
@@ -20,6 +23,7 @@ module.exports = defineConfig({
   },
   build: {
     outDir: '../dist',
+    emptyOutDir: true,
     assetsDir: 'assets',
     rollupOptions: {
       output: {

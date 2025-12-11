@@ -31,8 +31,8 @@
 					{{ pokemon.name }}
 					<div class="roar-button">
 						<a class="nes-btn is-primary" v-on:click="playRoar" v-if="pokemon.singleDigitID">
-							<audio :id="'pokemonRoar-' + pokemon.singleDigitID" :key="pokemon.singleDigitID">
-								<source :src="assetPath('assets/sounds/' + pokemon.singleDigitID + '.mp3')" type="audio/mpeg" preload="auto" style="display: none"> Your browser does not support the audio element.
+							<audio :id="'pokemonRoar-' + pokemon.singleDigitID" :key="'audio-' + pokemon.singleDigitID">
+								<source :key="'source-' + pokemon.singleDigitID" :src="assetPath('assets/sounds/' + pokemon.singleDigitID + '.mp3')" type="audio/mpeg" preload="auto" style="display: none"> Your browser does not support the audio element.
 							</audio>
 							<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="93.038px" height="93.038px" viewBox="0 0 93.038 93.038" style="enable-background:new 0 0 93.038 93.038;" xml:space="preserve">
 								<g>
@@ -229,19 +229,42 @@
 			playRoar: function() {
 				if (!this.pokemon.singleDigitID) return;
 				
-				const audioId = 'pokemonRoar-' + this.pokemon.singleDigitID;
-				let sound = document.getElementById(audioId);
-				console.log('Playing roar sound for Pokemon', this.pokemon.singleDigitID, 'audio element:', sound);
+				const pokemonId = this.pokemon.singleDigitID;
+				const expectedSrc = this.assetPath('assets/sounds/' + pokemonId + '.mp3');
 				
-				if (sound) {
-					// Reset audio to beginning and play
-					sound.currentTime = 0;
-					sound.play().catch(error => {
-						console.error('Error playing audio:', error);
-					});
-				} else {
-					console.error('Audio element not found:', audioId);
-				}
+				// Use nextTick to ensure DOM is updated
+				this.$nextTick(() => {
+					const audioId = 'pokemonRoar-' + pokemonId;
+					let sound = document.getElementById(audioId);
+					console.log('Playing roar sound for Pokemon', pokemonId, 'expected src:', expectedSrc, 'audio element:', sound);
+					
+					if (sound) {
+						// Always check and update the source to ensure correct file
+						const source = sound.querySelector('source');
+						if (source) {
+							const currentSrc = source.src || sound.src;
+							
+							// Check if source needs to be updated (handle both absolute and relative URLs)
+							const srcToCheck = currentSrc.split('?')[0]; // Remove query params if any
+							const expectedSrcToCheck = expectedSrc.split('?')[0];
+							
+							// If source doesn't match expected, update it
+							if (!srcToCheck.endsWith(expectedSrcToCheck) && !srcToCheck.includes('/' + pokemonId + '.mp3')) {
+								console.log('Updating audio source from', currentSrc, 'to', expectedSrc);
+								source.src = expectedSrc;
+								sound.load(); // Force reload the audio element
+							}
+						}
+						
+						// Reset audio to beginning and play
+						sound.currentTime = 0;
+						sound.play().catch(error => {
+							console.error('Error playing audio:', error);
+						});
+					} else {
+						console.error('Audio element not found:', audioId);
+					}
+				});
 			},
 			
 			navigateToPrev: function() {
@@ -314,6 +337,20 @@
 				if (newName !== oldName) {
 					console.log('Route changed from', oldName, 'to', newName);
 					this.loadPokemon();
+				}
+			},
+			'pokemon.singleDigitID': function(newId, oldId) {
+				// Reload audio element when Pokemon changes
+				if (newId && newId !== oldId) {
+					this.$nextTick(() => {
+						const audioId = 'pokemonRoar-' + newId;
+						const audio = document.getElementById(audioId);
+						if (audio) {
+							// Force reload the audio source
+							audio.load();
+							console.log('Reloaded audio for Pokemon', newId);
+						}
+					});
 				}
 			}
 		}
