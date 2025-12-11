@@ -31,8 +31,8 @@
 					{{ pokemon.name }}
 					<div class="roar-button">
 						<a class="nes-btn is-primary" v-on:click="playRoar" v-if="pokemon.singleDigitID">
-							<audio id="pokemonRoar">
-								<source :src="assetPath('assets/sounds/' + pokemon.singleDigitID + '.mp3')" type="audio/mpeg" preload="auto" style="display: none" muted> Your browser does not support the audio element.
+							<audio :id="'pokemonRoar-' + pokemon.singleDigitID" :key="pokemon.singleDigitID">
+								<source :src="assetPath('assets/sounds/' + pokemon.singleDigitID + '.mp3')" type="audio/mpeg" preload="auto" style="display: none"> Your browser does not support the audio element.
 							</audio>
 							<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="93.038px" height="93.038px" viewBox="0 0 93.038 93.038" style="enable-background:new 0 0 93.038 93.038;" xml:space="preserve">
 								<g>
@@ -183,26 +183,37 @@
 			};
 		},
 		
-		computed: {
-			assetBase() {
-				// Detect base path same way as router
-				if (typeof window !== 'undefined') {
-					const pathname = window.location.pathname;
-					const match = pathname.match(/^(\/apps\/pokedex\/)/);
-					if (match) {
-						return match[1];
-					}
-					// Fallback: detect from script location
-					const script = document.querySelector('script[type="module"]');
-					if (script && script.src) {
-						const scriptPath = new URL(script.src, window.location.href).pathname;
-						const scriptDir = scriptPath.substring(0, scriptPath.lastIndexOf('/') + 1);
-						return scriptDir;
-					}
-				}
-				return './';
+	computed: {
+		assetBase() {
+			// In dev mode, assets are served from root, so use BASE_URL directly
+			// In production, detect base path same way as router
+			const viteBase = import.meta.env.BASE_URL;
+			
+			// In dev mode (BASE_URL is usually '/'), use it as-is or empty for relative paths
+			if (!import.meta.env.PROD) {
+				return viteBase === './' ? '' : viteBase;
 			}
-		},
+			
+			// Production mode: detect base path
+			if (typeof window !== 'undefined') {
+				const pathname = window.location.pathname;
+				const match = pathname.match(/^(\/apps\/pokedex\/)/);
+				if (match) {
+					return match[1];
+				}
+				// Fallback: detect from script location
+				const script = document.querySelector('script[type="module"]');
+				if (script && script.src) {
+					const scriptPath = new URL(script.src, window.location.href).pathname;
+					const scriptDir = scriptPath.substring(0, scriptPath.lastIndexOf('/') + 1);
+					return scriptDir;
+				}
+			}
+			
+			// Default: normalize BASE_URL
+			return viteBase === './' ? '' : viteBase;
+		}
+	},
 		
 		methods: {
 			assetPath: function(path) {
@@ -216,12 +227,20 @@
 			},
 			
 			playRoar: function() {
-				let sound = document.getElementById('pokemonRoar');
-				console.log('Playing roar sound, audio element:', sound);
+				if (!this.pokemon.singleDigitID) return;
+				
+				const audioId = 'pokemonRoar-' + this.pokemon.singleDigitID;
+				let sound = document.getElementById(audioId);
+				console.log('Playing roar sound for Pokemon', this.pokemon.singleDigitID, 'audio element:', sound);
+				
 				if (sound) {
+					// Reset audio to beginning and play
+					sound.currentTime = 0;
 					sound.play().catch(error => {
 						console.error('Error playing audio:', error);
 					});
+				} else {
+					console.error('Audio element not found:', audioId);
 				}
 			},
 			

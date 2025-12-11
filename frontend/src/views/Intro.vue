@@ -41,7 +41,16 @@ export default {
 	
 	computed: {
 		assetBase() {
-			// Detect base path same way as router
+			// In dev mode, assets are served from root, so use BASE_URL directly
+			// In production, detect base path same way as router
+			const viteBase = import.meta.env.BASE_URL;
+			
+			// In dev mode (BASE_URL is usually '/'), use it as-is or empty for relative paths
+			if (!import.meta.env.PROD) {
+				return viteBase === './' ? '' : viteBase;
+			}
+			
+			// Production mode: detect base path
 			if (typeof window !== 'undefined') {
 				const pathname = window.location.pathname;
 				const match = pathname.match(/^(\/apps\/pokedex\/)/);
@@ -56,7 +65,9 @@ export default {
 					return scriptDir;
 				}
 			}
-			return './';
+			
+			// Default: normalize BASE_URL
+			return viteBase === './' ? '' : viteBase;
 		}
 	},
 	
