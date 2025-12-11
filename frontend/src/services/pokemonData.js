@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Use embedded data in production, API in development
-const USE_EMBEDDED_DATA = import.meta.env.PROD;
+// Use embedded data in production, OR when accessing remotely in dev
+const USE_EMBEDDED_DATA = import.meta.env.PROD || 
+  (typeof window !== 'undefined' && 
+   window.location.hostname !== 'localhost' && 
+   window.location.hostname !== '127.0.0.1');
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/graphql';
 
 let embeddedDataCache = null;
