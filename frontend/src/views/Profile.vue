@@ -327,6 +327,11 @@
 			}
 		},
 		
+		beforeMount() {
+			// Reset scroll to top before component mounts
+			window.scrollTo(0, 0);
+		},
+		
 		async mounted() {
 			this.loadPokemon();
 		},

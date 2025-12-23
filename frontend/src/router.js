@@ -69,6 +69,11 @@ router.beforeEach((to, from, next) => {
 
 router.afterEach((to, from) => {
 	console.log('Router navigation complete:', to.path, 'matched route:', to.name);
+	
+	// Scroll to top when navigating to profile pages
+	if (to.path.startsWith('/profile/')) {
+		window.scrollTo(0, 0);
+	}
 });
 
 export default router;
